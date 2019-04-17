@@ -1,7 +1,9 @@
-chaostoolkit-lib>=1.1.2
-chaostoolkit>=1.0.0
+chaostoolkit-lib>=1.5.0
+chaostoolkit>=1.2.0
 click>=7.0.0
 logzero>=1.5.0
 requests>=2.21.0
 simplejson>=3.16.0
 pyyaml>=5.1
+tzlocal>=1.5.1
+cloudevents>=0.2.4

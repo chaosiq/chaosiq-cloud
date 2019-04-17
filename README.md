@@ -1,57 +1,157 @@
-# chaostoolkit-chaoshub
+# Chaos Toolkit Cloud extension for the Chaos Toolkit
 
 [![Build Status](https://travis-ci.org/chaosiq/chaosiq-chaostoolkit-plugin.svg?branch=master)](https://travis-ci.org/chaosiq/chaosiq-chaostoolkit-plugin)
 
-The ChaosIQ plugin library for the [Chaos Toolkit][chaostoolkit].
+This is the Chaos Toolkit Cloud extension package for the [Chaos Toolkit][chaostoolkit].
 
-[chaostoolkit]: https://chaostoolkit.org/
+[chaostoolkit]: https://chaostoolkit.com/
 
 ## Purpose
 
-The purpose of this library is to communication with [ChaosIQ][] from the
-Chaos Toolkit
+The purpose of this package is to communicate with [Chaos Toolkit Cloud][ctk] in
+order to:
 
-[chaosiq]: https://chaosiq.io
+* Publish experiments
+* Publish executions of these experiments
+* Control the execution via a set of controls
+
+[ctk]: https://chaostoolkit.com/
 
 ## Install
 
 Install this package as any other Python packages:
 
 ```
-$ pip install -U chaosiq-chaostoolkit-plugin
+$ pip install -U chaostoolkit-cloud
 ```
 
-Notice that this draws a few [dependencies][deps]:
+You can also install the latest master branch as follows:
 
-[deps]: https://github.com/cchaosiq/chaosiq-chaostoolkit-plugin/blob/master/requirements.txt
+```
+$ git config --global url.ssh://git@github.com/chaosiq.insteadOf https://github.com/chaosiq
+$ pip install -U git+https://github.com/chaosiq/chaostoolkit-plugin.git
+```
+
+The first line indicates you want to authenticate with your SSH key to the
+repo even when using the https scheme. You may remove that from your config
+after installed.
+
+Notice that this draws a few [dependencies][deps].
+
+[deps]: https://github.com/chaosiq/chaostoolkit-plugin/blob/master/requirements.txt
 
 
 ## Usage
 
-Once installed, `login` and `publish` subommands will be made available to
-the new `chaosiq` command. You can use them as follows:
+Once installed, `login`, `publish`, `enable` and `disable` will be added
+to the `chaos` command.
+
+```console
+$ chaos
+Usage: chaos [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --version           Show the version and exit.
+  --verbose           Display debug level traces.
+  --no-version-check  Do not search for an updated version of the
+                      chaostoolkit.
+  --change-dir TEXT   Change directory before running experiment.
+  --no-log-file       Disable logging to file entirely.
+  --log-file TEXT     File path where to write the command's log.  [default:
+                      chaostoolkit.log]
+  --settings TEXT     Path to the settings file.  [default:
+                      /home/sylvain/.chaostoolkit/settings.yaml]
+  --help              Show this message and exit.
+
+Commands:
+  disable   Disable a Chaos Toolkit's extension client feature
+  discover  Discover capabilities and experiments.
+  enable    Enable a Chaos Toolkit's extension client feature
+  info      Display information about the Chaos Toolkit environment.
+  init      Initialize a new experiment from discovered capabilities.
+  login     Set the access token to communicate with Chaos Toolkit
+  run       Run the experiment loaded from SOURCE, either a local file or a...
+  validate  Validate the experiment at PATH.
+```
+
+### Login with the Chaos Toolkit
+
+In order to work, you first need to authenticate with your account on the
+[Chaos Toolkit Cloud][ctk]. First, go there and generate a new token. Copy that
+token and paste it when asked from the next command:
+
 
 ```
-$ chaosiq login
+$ chaos login
+Chaos Toolkit Cloud url [https://console.chaostoolkit.com]: 
+Chaos Toolkit Cloud token: 
+Experiments and executions will be published to organization 'MyName'
+Chaos Toolkit Cloud details saved at ~/.chaostoolkit/settings.yaml
 ```
 
+This is now ready to be used.
+
+### Publish experiments and executions as you run
+
+Once this extension is installed, it starts transmitting the experiments
+and their executions to the [Chaos Toolkit Cloud][ctk] in your account.
+
 ```
-$ chaos publish journal.json
+$ chaos run test.json
+[2019-07-01 14:49:40 INFO] Validating the experiment's syntax
+[2019-07-01 14:49:40 INFO] Experiment looks valid
+[2019-07-01 14:49:40 INFO] Running experiment: Look token in file
+[2019-07-01 14:49:40 INFO] Execution available at https://console.chaostoolkit.com/MyName/experiments/fc36eb45-4718-4c4a-a50e-503552116cf3/executions/c07afe83-b590-486f-b149-de3d6de7e155
+[2019-07-01 14:49:40 INFO] Steady state hypothesis: Our hypothesis is tour token is part of the file
+[2019-07-01 14:49:41 INFO] Probe: grep-file
+[2019-07-01 14:49:41 INFO] Steady state hypothesis is met!
+[2019-07-01 14:49:41 INFO] Action: remove-token
+[2019-07-01 14:49:41 INFO] Steady state hypothesis: Our hypothesis is tour roken is part of the file
+[2019-07-01 14:49:41 INFO] Probe: grep-file
+[2019-07-01 14:49:42 INFO] Steady state hypothesis is met!
+[2019-07-01 14:49:42 INFO] Let's rollback...
+[2019-07-01 14:49:42 INFO] Rollback: remove-token
+[2019-07-01 14:49:42 INFO] Action: remove-token
+[2019-07-01 14:49:42 INFO] Experiment ended with status: completed
 ```
 
-The `login` sets the access token you generated from ChaosIQ to communicate
-with its services.
+### Publish existing execution
 
 The `publish` command enables you to manually push your experimental 
-findings, typically recorded in the `journal.json`, to your ChaosIQ account.
+findings, typically recorded in the `journal.json`, to your Chaos Toolkit
+account.
 
-By default, once you have logged into your ChaosIQ your experiment's findings
-will be automatically pushed to ChaosIQ when you execute 
-`chaos run`. You can turn this behaviour off by specifying `--no-publish`
-as shown here:
+### Disable policies checking
 
+During development time of your experiment, you may wish to disable checking
+for policies as they can slow your work down. They aren't always relevant
+either. To disable the extension from requesting if the execution is allowed
+to carry on:
+
+```console
+$ chaos disable policies
 ```
-$ chaos run experiment.json --no-publish
+
+Obviously, run the mirroring command to enable them back:
+
+```console
+$ chaos enable policies
+```
+
+### Disable publishing experiments and executions
+
+If you need to disable publishing for a little whie
+
+```console
+$ chaos disable publish
+```
+
+Note, when you disable publishing, you essentialy disable the entire extension.
+
+Obviously, run the mirroring command to enable publishing again:
+
+```console
+$ chaos enable publish
 ```
 
 ## Contribute

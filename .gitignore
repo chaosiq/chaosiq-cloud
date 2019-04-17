@@ -109,3 +109,6 @@ discovery.json
 journal.json
 
 .pytest_cache/
+
+test.txt
+test.json

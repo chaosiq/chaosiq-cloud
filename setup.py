@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""chaoshub builder and installer"""
+"""Chaos Toolkit Cloud builder and installer"""
 
 import sys
 import io
@@ -7,11 +7,12 @@ import os
 
 import setuptools
 
+
 def get_version_from_package() -> str:
     """
     Read the package version from the source without importing it.
     """
-    path = os.path.join(os.path.dirname(__file__), "chaosiqctk/__init__.py")
+    path = os.path.join(os.path.dirname(__file__), "chaoscloud/__init__.py")
     path = os.path.normpath(os.path.abspath(path))
     with open(path) as f:
         for line in f:
@@ -20,8 +21,8 @@ def get_version_from_package() -> str:
                 version = version.replace("'", "").strip()
                 return version
 
-name = 'chaosiq-chaostoolkit-plugin'
-desc = 'ChaosIQ plugin for the Chaos Toolkit CLI'
+name = 'chaostoolkit-cloud'
+desc = 'Chaos Toolkit Cloud plugin for the Chaos Toolkit CLI'
 
 with io.open('README.md', encoding='utf-8') as strm:
     long_desc = strm.read()
@@ -35,15 +36,17 @@ classifiers = [
     'Programming Language :: Python :: 3',
     'Programming Language :: Python :: 3.5',
     'Programming Language :: Python :: 3.6',
+    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: Implementation',
     'Programming Language :: Python :: Implementation :: CPython'
 ]
 author = 'ChaosIQ'
 author_email = 'contact@chaosiq.io'
-url = 'https://chaostoolkit.org'
+url = 'https://chaostoolkit.com'
 license = 'Apache License Version 2.0'
 packages = [
-    'chaosiqctk'
+    'chaoscloud',
+    'chaoscloud.api'
 ]
 
 needs_pytest = set(['pytest', 'test']).intersection(sys.argv)
@@ -74,13 +77,11 @@ setup_params = dict(
     setup_requires=pytest_runner,
     python_requires='>=3.5.*',
     entry_points={
-        'console_scripts': [
-            'chaosiq = chaosiqctk.__main__:cli'
-        ],
         'chaostoolkit.cli_plugins': [
-            'login = chaosiqctk.cli:login', 
-            'run = chaosiqctk.cli_overload:run',
-            'publish = chaosiqctk.cli:publish'
+            'login = chaoscloud.cli:login',
+            'publish = chaoscloud.cli:publish',
+            'enable = chaoscloud.cli:enable',
+            'disable = chaoscloud.cli:disable'
         ]
     }
 )

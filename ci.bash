@@ -3,11 +3,11 @@ set -eo pipefail
 
 function lint () {
     echo "Checking the code syntax"
-    pycodestyle --first chaosiqctk
+    pycodestyle --first chaoscloud
 }
 
 function build () {
-    echo "Building the chaosiq-chaostoolkit package"
+    echo "Building the chaostoolkit-cloud package"
     python setup.py build
 }
 
