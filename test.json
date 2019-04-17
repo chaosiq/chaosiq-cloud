@@ -1,0 +1,20 @@
+{
+    "version": "1.0.0",
+    "title": "Annoy Jason by slowing the access to the Product Page",
+    "description": "We promise our users fast responses, how does increasing latency in the reviews service impact the overall user experience?",
+    "tags": [
+        "istio", "productpage", "reviews"
+    ],
+    "method": [
+        {
+            "type": "probe",
+            "name": "say-hello",
+            "provider": {
+                "type": "process",
+                "path": "echo",
+                "arguments": ""
+            }
+        }
+    ],
+    "rollbacks": []
+}
