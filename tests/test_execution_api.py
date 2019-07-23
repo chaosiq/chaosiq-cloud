@@ -8,13 +8,13 @@ from chaoscloud.api import client_session
 from chaoscloud.api import urls
 from chaoscloud.api.execution import initialize_execution, publish_execution, \
     fetch_execution, publish_event
-from chaoscloud.api import urls
 
 
 ENDPOINT = "https://console.chaostoolkit.com"
 
 
-def test_execution_not_created_when_experiment_is_invalid_type(organizations, default_org_id):
+def test_execution_not_created_when_experiment_is_invalid_type(
+                                                organizations, default_org_id):
     experiment_id = str(uuid.uuid4())
     # the remote endpoint cannot deal with anything but a experiment
     experiment = {
@@ -69,7 +69,7 @@ def test_create_execution(organizations, default_org_id):
             },
             headers={
                 "content-type": "application/json",
-                "content-location": f"{url}/{x_id}"
+                "content-location": "{}/{}".format(url, x_id)
             }
         )
         with client_session(ENDPOINT, organizations) as s:
@@ -79,7 +79,8 @@ def test_create_execution(organizations, default_org_id):
             assert experiment["extensions"][0]["execution_id"] == x_id
 
 
-def test_cannot_create_execution_on_requests_connection_timeout(organizations, default_org_id):
+def test_cannot_create_execution_on_requests_connection_timeout(
+                                                organizations, default_org_id):
     experiment_id = str(uuid.uuid4())
     experiment = {
         "title": "Hello there",
@@ -103,7 +104,8 @@ def test_cannot_create_execution_on_requests_connection_timeout(organizations, d
             assert r is None
 
 
-def test_cannot_create_execution_from_unknown_experiment_id(organizations, default_org_id):
+def test_cannot_create_execution_from_unknown_experiment_id(
+                                                organizations, default_org_id):
     experiment_id = str(uuid.uuid4())
     experiment = {
         "title": "Hello there",
@@ -131,7 +133,8 @@ def test_cannot_create_execution_from_unknown_experiment_id(organizations, defau
             assert "execution_id" not in experiment["extensions"][0]
 
 
-def test_cannot_update_execution_with_invalid_execution_id(organizations, default_org_id):
+def test_cannot_update_execution_with_invalid_execution_id(organizations,
+                                                           default_org_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -183,7 +186,8 @@ def test_update_execution(organizations, default_org_id):
             assert r.status_code == 204
 
 
-def test_cannot_update_execution_on_request_connection_timeout(organizations, default_org_id):
+def test_cannot_update_execution_on_request_connection_timeout(organizations,
+                                                               default_org_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -229,7 +233,8 @@ def test_fetch_execution(organizations, default_org_id):
             assert r.status_code == 200
 
 
-def test_cannot_fetch_execution_on_request_connection_timeout(organizations, default_org_id):
+def test_cannot_fetch_execution_on_request_connection_timeout(organizations,
+                                                              default_org_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -252,7 +257,8 @@ def test_cannot_fetch_execution_on_request_connection_timeout(organizations, def
             assert r is None
 
 
-def test_cannot_fetch_execution_non_published_experiment(organizations, default_org_id):
+def test_cannot_fetch_execution_non_published_experiment(organizations,
+                                                         default_org_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -300,7 +306,8 @@ def test_publish_event(organizations, default_org_id):
             assert "extensions" in r
 
 
-def test_cannot_publish_event_non_published_execution(organizations, default_org_id):
+def test_cannot_publish_event_non_published_execution(organizations,
+                                                      default_org_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     extensions = []

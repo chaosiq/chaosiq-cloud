@@ -10,7 +10,8 @@ from chaoscloud.api import urls
 ENDPOINT = "https://chaostoolkit.com"
 
 
-def test_experiment_not_created_when_invalid_type(organizations, default_org_id):
+def test_experiment_not_created_when_invalid_type(organizations,
+                                                  default_org_id):
     # the remote endpoint cannot deal with anything but a experiment
     experiment = []
     with requests_mock.mock() as m:
@@ -64,16 +65,17 @@ def test_create_experiment(organizations, default_org_id):
             },
             headers={
                 "content-type": "application/json",
-                "content-location": f"{url}/{x_id}"
+                "content-location": "{}/{}".format(url, x_id)
             }
         )
         with client_session(ENDPOINT, organizations) as s:
             r = publish_experiment(s, experiment)
             assert r.status_code == 201
-            assert r.headers["content-location"] == f"{url}/{x_id}"
+            assert r.headers["content-location"] == "{}/{}".format(url, x_id)
 
 
-def test_cannot_create_experiment_on_requests_connection_timeout(organizations, default_org_id):
+def test_cannot_create_experiment_on_requests_connection_timeout(
+                                                organizations, default_org_id):
     experiment = {
         "title": "hello"
     }

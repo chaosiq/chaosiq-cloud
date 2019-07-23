@@ -149,7 +149,7 @@ def publish_event(session: Session, event_type: str, payload: Any,
     headers, body = m.ToRequest(event, converters.TypeStructured, lambda x: x)
     r = session.post(url, headers=headers, data=body.getvalue())
     if r.status_code != 201:
-        logger.debug(f"Failed to push event to {url}: {r.text}")
+        logger.debug("Failed to push event to {}: {}".format(url, r.text))
 
 
 ###############################################################################

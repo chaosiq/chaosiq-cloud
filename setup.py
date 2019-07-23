@@ -21,6 +21,7 @@ def get_version_from_package() -> str:
                 version = version.replace("'", "").strip()
                 return version
 
+
 name = 'chaostoolkit-cloud'
 desc = 'Chaos Toolkit Cloud plugin for the Chaos Toolkit CLI'
 
