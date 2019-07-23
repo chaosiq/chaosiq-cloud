@@ -133,7 +133,7 @@ def publish_event(session: Session, event_type: str, payload: Any,
         SetContentType("application/json").
         SetData(json.dumps(data)).
         SetEventID(str(uuid.uuid4())).
-        SetSource("chaosiq-chaostoolkit-plugin").
+        SetSource("chaostoolkit-cloud").
         SetEventTime(tz.localize(datetime.now()).isoformat()).
         SetEventType(event_type)
     )
