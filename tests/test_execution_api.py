@@ -299,7 +299,7 @@ def test_publish_event(organizations, default_org_id):
             assert r["specversion"] == "0.2"
             assert r["contenttype"] == "application/json"
             assert r["type"] == "start-experiment"
-            assert r["source"] == "chaosiq-chaostoolkit-plugin"
+            assert r["source"] == "chaostoolkit-cloud"
             assert "id" in r
             assert "time" in r
             assert "data" in r
