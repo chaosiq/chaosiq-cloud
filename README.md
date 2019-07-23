@@ -1,6 +1,6 @@
 # Chaos Toolkit Cloud extension for the Chaos Toolkit
 
-[![Build Status](https://travis-ci.org/chaosiq/chaostoolkit-cloud.svg?branch=master)](https://travis-ci.org/chaosiq/chaostoolkit-cloud)
+[![Build Status](https://travis-ci.com/chaosiq/chaostoolkit-cloud.svg?branch=master)](https://travis-ci.com/chaosiq/chaostoolkit-cloud)
 
 This is the Chaos Toolkit Cloud extension package for the [Chaos Toolkit][chaostoolkit].
 
