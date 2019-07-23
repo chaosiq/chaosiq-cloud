@@ -43,15 +43,14 @@ def login(ctx: click.Context):
     default_url = get_endpoint_url(
         settings, "https://console.chaostoolkit.com")
     url = click.prompt(
-        click.style(
-            "Chaos Toolkit Cloud url", fg='green'), type=str, show_default=True,
-        default=default_url)
+        click.style("Chaos Toolkit Cloud url", fg='green'),
+        type=str, show_default=True, default=default_url)
     url = urlparse(url)
     url = "://".join([url.scheme, url.netloc])
 
     token = click.prompt(
-        click.style(
-            "Chaos Toolkit Cloud token", fg='green'), type=str, hide_input=True)
+        click.style("Chaos Toolkit Cloud token", fg='green'),
+        type=str, hide_input=True)
     token = token.strip()
 
     disable_tls_verify = False
@@ -75,7 +74,8 @@ def login(ctx: click.Context):
         }, verify=not disable_tls_verify)
         if r.status_code != 200:
             logger.debug(
-                f"Failed to fetch your organizations at {orgs_url}: {r.text}")
+                "Failed to fetch your organizations at {}: {}".format(
+                    orgs_url, r.text))
             click.echo(
                 click.style("Failed to fetch your organizations", fg="yellow"))
             break
@@ -101,7 +101,8 @@ def login(ctx: click.Context):
     if default_org:
         click.echo(
             "Experiments and executions will be published to "
-            f"organization '{click.style(default_org['name'], fg='blue')}'")
+            "organization '{}'".format(
+                click.style(default_org['name'], fg='blue')))
 
     set_settings(url, token, disable_tls_verify, default_org, settings)
     save_settings(settings, settings_path)
@@ -150,7 +151,7 @@ def publish(ctx: click.Context, journal: str):
 def enable(ctx: click.Context, feature: str):
     """
     Enable one of the extension's features: `publish` to push experiment
-    and executions to the Chaos Toolkit Cloud. `policies` to validate the 
+    and executions to the Chaos Toolkit Cloud. `policies` to validate the
     run is allowed to continue at runtime.
     """
     settings_path = ctx.obj["settings_path"]

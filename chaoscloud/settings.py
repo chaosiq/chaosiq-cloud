@@ -100,7 +100,8 @@ def get_control(settings: Settings) -> Control:
 
 
 def get_orgs(settings: Settings) -> List[Dict[str, Any]]:
-    provider = settings['controls']['chaostoolkit-cloud'].setdefault('provider', {})
+    provider = \
+        settings['controls']['chaostoolkit-cloud'].setdefault('provider', {})
     args = provider.setdefault('arguments', {})
     return args.setdefault('organizations', [])
 

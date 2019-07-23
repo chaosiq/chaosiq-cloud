@@ -36,7 +36,7 @@ def client_session(url: str, organizations: List[Dict[str, str]],
         if not host_auth:
             logger.debug(
                 "Your settings are missing an authentication declaration for "
-                f"'{host}'. Have you run 'chaos login'?")
+                "'{}'. Have you run 'chaos login'?".format(host))
         else:
             auth_type = host_auth.get('type', 'bearer')
             token = host_auth.get('value')

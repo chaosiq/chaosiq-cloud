@@ -3,13 +3,13 @@ import uuid
 import requests_mock
 
 from chaoscloud.api import urls
-from chaoscloud.controls import configure_control, before_experiment_control, \
-    after_experiment_control
+from chaoscloud.controls import configure_control
 
 ENDPOINT = "https://chaostoolkit.com"
 
 
-def test_configure_control_creates_experiment_and_execution_when_new(organizations, default_org_id):
+def test_configure_control_creates_experiment_and_execution_when_new(
+                                                organizations, default_org_id):
     x_id = str(uuid.uuid4())
     e_id = str(uuid.uuid4())
     experiment = {
@@ -32,7 +32,7 @@ def test_configure_control_creates_experiment_and_execution_when_new(organizatio
             },
             headers={
                 "content-type": "application/json",
-                "content-location": f"{url}/{e_id}"
+                "content-location": "{}/{}".format(url, e_id)
             }
         )
 
@@ -45,7 +45,7 @@ def test_configure_control_creates_experiment_and_execution_when_new(organizatio
             },
             headers={
                 "content-type": "application/json",
-                "content-location": f"{url}/{x_id}"
+                "content-location": "{}/{}".format(url, x_id)
             }
         )
 

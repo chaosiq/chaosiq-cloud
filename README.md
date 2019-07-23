@@ -1,6 +1,6 @@
 # Chaos Toolkit Cloud extension for the Chaos Toolkit
 
-[![Build Status](https://travis-ci.org/chaosiq/chaosiq-chaostoolkit-plugin.svg?branch=master)](https://travis-ci.org/chaosiq/chaosiq-chaostoolkit-plugin)
+[![Build Status](https://travis-ci.org/chaosiq/chaostoolkit-cloud.svg?branch=master)](https://travis-ci.org/chaosiq/chaostoolkit-cloud)
 
 This is the Chaos Toolkit Cloud extension package for the [Chaos Toolkit][chaostoolkit].
 
@@ -178,7 +178,7 @@ those dependencies.
 [venv]: http://chaostoolkit.org/reference/usage/install/#create-a-virtual-environment
 
 ```console
-$ pip install -r requirements-dev.txt -r requirements.txt 
+$ pip install -r requirements-dev.txt -r requirements.txt
 ```
 
 Then, point your environment to this directory:
