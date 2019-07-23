@@ -25,22 +25,6 @@ Install this package as any other Python packages:
 $ pip install -U chaostoolkit-cloud
 ```
 
-You can also install the latest master branch as follows:
-
-```
-$ git config --global url.ssh://git@github.com/chaosiq.insteadOf https://github.com/chaosiq
-$ pip install -U git+https://github.com/chaosiq/chaostoolkit-plugin.git
-```
-
-The first line indicates you want to authenticate with your SSH key to the
-repo even when using the https scheme. You may remove that from your config
-after installed.
-
-Notice that this draws a few [dependencies][deps].
-
-[deps]: https://github.com/chaosiq/chaostoolkit-plugin/blob/master/requirements.txt
-
-
 ## Usage
 
 Once installed, `login`, `publish`, `enable` and `disable` will be added
