@@ -94,7 +94,8 @@ def login(ctx: click.Context):
             "Default organization to publish to", fg='green'), type=int)
         org_index = org_index - 1
         if -1 < org_index < len(orgs):
-            default_org = orgs[org_index-1]
+            org = orgs[org_index]
+            default_org = {"name": org[1], "id": org[0]}
             break
         click.echo("Select a default organization to publish to")
 
