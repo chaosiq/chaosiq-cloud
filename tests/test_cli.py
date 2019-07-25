@@ -8,8 +8,8 @@ import requests_mock
 from chaoscloud.cli import cli
 
 
-@patch('chaoscloud.cli.login', spec=True)
-def test_login(login):
+@patch('chaoscloud.cli.signin', spec=True)
+def test_signin(signin):
     url = 'https://console.chaos-awesome-toolkit.com'
     token = 'XYZ'
     selected_org_index = '2'
@@ -36,7 +36,7 @@ def test_login(login):
         runner = CliRunner()
         with NamedTemporaryFile(suffix="yaml") as settings:
             result = runner.invoke(
-                cli, ["--settings", settings.name, "login"], input=inputs)
+                cli, ["--settings", settings.name, "signin"], input=inputs)
 
             assert result.exit_code == 0
             assert result.exception is None

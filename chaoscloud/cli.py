@@ -18,7 +18,7 @@ from .settings import set_settings, get_endpoint_url, get_orgs, \
     verify_tls_certs, enable_policies, enable_publishing, disable_policies, \
     disable_publishing
 
-__all__ = ["login", "publish"]
+__all__ = ["signin", "publish"]
 
 
 @click.group()
@@ -31,11 +31,11 @@ def cli(ctx: click.Context, settings: str = CHAOSTOOLKIT_CONFIG_PATH):
     ctx.obj["settings_path"] = click.format_filename(settings)
 
 
-@cli.command(help="Set the access token to communicate with Chaos Toolkit")
+@cli.command(help="Sign-in with your Chaos Toolkit Cloud credentials")
 @click.pass_context
-def login(ctx: click.Context):
+def signin(ctx: click.Context):
     """
-    Login to the Chaos Toolkit Cloud
+    Sign-in to the Chaos Toolkit Cloud.
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path) or {}

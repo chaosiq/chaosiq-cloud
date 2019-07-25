@@ -79,7 +79,7 @@ setup_params = dict(
     python_requires='>=3.5.*',
     entry_points={
         'chaostoolkit.cli_plugins': [
-            'login = chaoscloud.cli:login',
+            'signin = chaoscloud.cli:signin',
             'publish = chaoscloud.cli:publish',
             'enable = chaoscloud.cli:enable',
             'disable = chaoscloud.cli:disable'
