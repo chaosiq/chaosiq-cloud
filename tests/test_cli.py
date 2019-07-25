@@ -59,3 +59,57 @@ def test_signin(signin):
             assert org["default"] is True
             assert org["id"] == "tyu"
             assert org["name"] == "otherorg"
+
+
+@patch('chaoscloud.cli.org', spec=True)
+def test_org(org):
+    url = 'https://console.chaos-awesome-toolkit.com'
+    token = 'XYZ'
+
+    with requests_mock.mock() as m:
+        m.head(url)
+        m.get("{}/api/v1/organizations".format(url), json=[
+            {
+                "id": "abc",
+                "name": "myorg"
+            },
+            {
+                "id": "tyu",
+                "name": "otherorg"
+            }
+        ])
+
+        runner = CliRunner()
+        with NamedTemporaryFile(suffix="yaml") as settings_file:
+
+            use_org_selected_org_index = '2'
+            use_org_inputs = '\n'.join([
+                url,
+                token,
+                use_org_selected_org_index
+            ])
+
+            result = runner.invoke(
+                cli, ["--settings", settings_file.name, "org"],
+                input=use_org_inputs)
+
+            assert result.exit_code == 0
+            assert result.exception is None
+
+            settings_file.seek(0)
+            settings = load_settings(settings_file.name)
+
+            assert 'console.chaos-awesome-toolkit.com' in settings["auths"]
+            auth = settings["auths"]['console.chaos-awesome-toolkit.com']
+            assert auth["type"] == "bearer"
+            assert auth["value"] == "XYZ"
+
+            assert "provider" in settings["controls"]["chaostoolkit-cloud"]
+            provider = settings["controls"]["chaostoolkit-cloud"]["provider"]
+            assert provider["module"] == "chaoscloud.controls"
+            assert provider["type"] == "python"
+            assert len(provider["arguments"]["organizations"]) == 1
+
+            orgs = provider["arguments"]["organizations"][0]
+            assert orgs["id"] == "tyu"
+            assert orgs["name"] == "otherorg"

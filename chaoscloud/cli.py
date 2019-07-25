@@ -13,12 +13,14 @@ from . import __version__
 from .api import client_session
 from .api.experiment import publish_experiment
 from .api.execution import initialize_execution, fetch_execution
+from .api.organization import request_orgs
+from .api.ssl import verify_ssl_certificate
 from .api import urls
 from .settings import set_settings, get_endpoint_url, get_orgs, \
     verify_tls_certs, enable_policies, enable_publishing, disable_policies, \
-    disable_publishing
+    disable_publishing, get_verify_tls, get_auth_token
 
-__all__ = ["signin", "publish"]
+__all__ = ["signin", "publish", "org"]
 
 
 @click.group()
@@ -38,77 +40,39 @@ def signin(ctx: click.Context):
     Sign-in to the Chaos Toolkit Cloud.
     """
     settings_path = ctx.obj["settings_path"]
+    establish_credentials(settings_path)
+
+
+@cli.command(help="Set the Chaos Toolkit Cloud organisation")
+@click.pass_context
+def org(ctx: click.Context):
+    """
+    List and select a new Chaos Toolkit Cloud organization to use.
+
+    \b
+    In order to benefit from these features, you must have registered with
+    Chaos Toolkit Cloud and retrieved an access token. You should set that
+    token in the configuration file with `chaos signin`.
+    """
+    settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path) or {}
 
-    default_url = get_endpoint_url(
+    url = get_endpoint_url(
         settings, "https://console.chaostoolkit.com")
-    url = click.prompt(
-        click.style("Chaos Toolkit Cloud url", fg='green'),
-        type=str, show_default=True, default=default_url)
-    url = urlparse(url)
-    url = "://".join([url.scheme, url.netloc])
 
-    token = click.prompt(
-        click.style("Chaos Toolkit Cloud token", fg='green'),
-        type=str, hide_input=True)
-    token = token.strip()
+    token = get_auth_token(settings, url)
+    disable_tls_verify = get_verify_tls(settings)
 
-    disable_tls_verify = False
-    try:
-        r = requests.head(url, headers={
-            "Authorization": "Bearer {}".format(token)
-        })
-        if r.status_code == 401:
-            click.echo("Your token was not accepted by the server.")
-            raise click.Abort()
-    except requests.exceptions.SSLError:
-        disable_tls_verify = click.confirm(
-            "It looks like the server's TLS certificate cannot be verified. "
-            "Do you wish to disable certificate verification for this server?")
+    if (not token):
+        establish_credentials(settings_path)
+    else:
+        default_org = select_organization(url, token, disable_tls_verify)
 
-    default_org = None
-    orgs_url = urls.org(urls.base(url))
-    while True:
-        r = requests.get(orgs_url, headers={
-            "Authorization": "Bearer {}".format(token)
-        }, verify=not disable_tls_verify)
-        if r.status_code != 200:
-            logger.debug(
-                "Failed to fetch your organizations at {}: {}".format(
-                    orgs_url, r.text))
-            click.echo(
-                click.style("Failed to fetch your organizations", fg="yellow"))
-            break
+        set_settings(url, token, disable_tls_verify, default_org, settings)
+        save_settings(settings, settings_path)
 
-        orgs = r.json()
-        if len(orgs) == 1:
-            default_org = orgs[0]
-            break
-        click.echo("Here are your known organizations:")
-        orgs = [(o['id'], o['name']) for o in orgs]
-        click.echo(
-            "\n".join(["{}) {}".format(i+1, o[1]) for (i, o) in enumerate(
-                orgs)]))
-
-        org_index = click.prompt(click.style(
-            "Default organization to publish to", fg='green'), type=int)
-        org_index = org_index - 1
-        if -1 < org_index < len(orgs):
-            org = orgs[org_index]
-            default_org = {"name": org[1], "id": org[0]}
-            break
-        click.echo("Select a default organization to publish to")
-
-    if default_org:
-        click.echo(
-            "Experiments and executions will be published to "
-            "organization '{}'".format(
-                click.style(default_org['name'], fg='blue')))
-
-    set_settings(url, token, disable_tls_verify, default_org, settings)
-    save_settings(settings, settings_path)
-
-    click.echo("Chaos Toolkit Cloud details saved at {}".format(settings_path))
+        click.echo("Chaos Toolkit Cloud details saved at {}".format(
+            settings_path))
 
 
 @cli.command(help="Publish your experiment's journal to Chaos Toolkit Cloud")
@@ -121,7 +85,7 @@ def publish(ctx: click.Context, journal: str):
     \b
     In order to benefit from these features, you must have registered with
     Chaos Toolkit Cloud and retrieved an access token. You should set that
-    token in the configuration file with `chaos login`.
+    token in the configuration file with `chaos signin`.
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path)
@@ -180,3 +144,84 @@ def disable(ctx: click.Context, feature: str):
     elif feature == "publish":
         disable_publishing(settings)
     save_settings(settings, settings_path)
+
+
+###############################################################################
+# Internals
+###############################################################################
+def establish_credentials(settings_path):
+    settings = load_settings(settings_path) or {}
+
+    default_url = get_endpoint_url(
+        settings, "https://console.chaostoolkit.com")
+
+    url = click.prompt(
+        click.style("Chaos Toolkit Cloud url", fg='green'),
+        type=str, show_default=True, default=default_url)
+    url = urlparse(url)
+    url = "://".join([url.scheme, url.netloc])
+
+    token = click.prompt(
+        click.style("Chaos Toolkit Cloud token", fg='green'),
+        type=str, hide_input=True)
+    token = token.strip()
+
+    disable_tls_verify = False
+    try:
+        r = verify_ssl_certificate(url, token)
+        if r.status_code == 401:
+            click.echo("Your token was not accepted by the server.")
+            raise click.Abort()
+    except requests.exceptions.SSLError:
+        disable_tls_verify = click.confirm(
+            "It looks like the server's TLS certificate cannot be verified. "
+            "Do you wish to disable certificate verification for this server?")
+
+    default_org = select_organization(url, token, disable_tls_verify)
+
+    set_settings(url, token, disable_tls_verify, default_org, settings)
+    save_settings(settings, settings_path)
+
+    click.echo("Chaos Toolkit Cloud details saved at {}".format(settings_path))
+
+
+def select_organization(url, token, disable_tls_verify) -> str:
+    default_org = None
+    orgs_url = urls.org(urls.base(url))
+    while True:
+        click.echo("Fetching orgs from:{}".format(orgs_url))
+        r = request_orgs(orgs_url, token, disable_tls_verify)
+        if r.status_code != 200:
+            logger.debug(
+                "Failed to fetch your organizations at {}: {}".format(
+                    orgs_url, r.text))
+            click.echo(
+                click.style("Failed to fetch your organizations", fg="yellow"))
+            break
+
+        orgs = r.json()
+        if len(orgs) == 1:
+            default_org = orgs[0]
+            break
+        click.echo("Here are your known organizations:")
+        orgs = [(o['id'], o['name']) for o in orgs]
+        click.echo(
+            "\n".join(["{}) {}".format(i+1, o[1]) for (i, o) in enumerate(
+                orgs)]))
+
+        org_index = click.prompt(click.style(
+            "Default organization to publish to", fg='green'), type=int)
+        org_index = org_index - 1
+        if -1 < org_index < len(orgs):
+            org = orgs[org_index]
+            default_org = {"name": org[1], "id": org[0]}
+            break
+        click.echo("Select a default organization to publish to")
+
+    if default_org:
+        click.echo(
+            "Experiments and executions will be published to "
+            "organization '{}'".format(
+                click.style(default_org['name'], fg='blue')))
+
+    return default_org

@@ -6,7 +6,7 @@ from chaoslib.types import Control, Settings
 
 __all__ = ["set_settings", "get_endpoint_url", "disable_publishing",
            "enable_publishing", "disable_policies", "enable_policies",
-           "is_feature_enabled"]
+           "is_feature_enabled", "get_verify_tls", "get_auth_token"]
 
 
 def set_settings(url: str, token: str, disable_tls_verify: bool,
@@ -72,6 +72,27 @@ def get_endpoint_url(settings: Settings,
         get('provider', {}).\
         get('arguments', {}).\
         get('url', default)
+
+
+def get_verify_tls(settings: Settings) -> str:
+    """
+    Get the configured tls verify of the Chaos Toolkit Cloud endpoint.
+    """
+    return settings.get('controls', {}).\
+        get('chaostoolkit-cloud', {}).\
+        get('provider', {}).\
+        get('arguments', {}).\
+        get('verify_tls')
+
+
+def get_auth_token(settings: Settings, url) -> str:
+    if 'auths' not in settings:
+        settings['auths'] = {}
+
+    p = urlparse(url)
+    for domain in settings['auths']:
+        if domain == p.netloc:
+            return settings['auths'].get(domain, {}).get("value")
 
 
 ###############################################################################
