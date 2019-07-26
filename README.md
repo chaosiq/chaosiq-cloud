@@ -29,7 +29,7 @@ $ pip install -U chaostoolkit-cloud
 
 ## Usage
 
-Once installed, `login`, `publish`, `enable` and `disable` will be added
+Once installed, `signin`, `org`, `publish`, `enable` and `disable` will be added
 to the `chaos` command.
 
 ```console
@@ -46,33 +46,59 @@ Options:
   --log-file TEXT     File path where to write the command's log.  [default:
                       chaostoolkit.log]
   --settings TEXT     Path to the settings file.  [default:
-                      /home/sylvain/.chaostoolkit/settings.yaml]
+                      /Users/russellmiles/.chaostoolkit/settings.yaml]
   --help              Show this message and exit.
 
 Commands:
-  disable   Disable a Chaos Toolkit's extension client feature
+  disable   Disable a Chaos Toolkit Cloud feature
   discover  Discover capabilities and experiments.
-  enable    Enable a Chaos Toolkit's extension client feature
+  enable    Enable a Chaos Toolkit Cloud feature
   info      Display information about the Chaos Toolkit environment.
   init      Initialize a new experiment from discovered capabilities.
-  login     Set the access token to communicate with Chaos Toolkit
+  org       Set the Chaos Toolkit Cloud organisation
+  publish   Publish your experiment's journal to Chaos Toolkit Cloud
   run       Run the experiment loaded from SOURCE, either a local file or a...
+  signin    Sign-in with your Chaos Toolkit Cloud credentials
   validate  Validate the experiment at PATH.
 ```
 
-### Login with the Chaos Toolkit
+### Sign-in with the Chaos Toolkit Cloud
 
 In order to work, you first need to authenticate with your account on the
 [Chaos Toolkit Cloud][ctk]. First, go there and generate a new token. Copy that
 token and paste it when asked from the next command:
 
 
-```
-$ chaos login
+```console
+$ chaos signin 
 Chaos Toolkit Cloud url [https://console.chaostoolkit.com]: 
 Chaos Toolkit Cloud token: 
-Experiments and executions will be published to organization 'MyName'
-Chaos Toolkit Cloud details saved at ~/.chaostoolkit/settings.yaml
+Fetching orgs from:https://console.chaostoolkit.com/api/v1/organizations
+Here are your known organizations:
+1) yourorg
+2) chaosiq
+Default organization to publish to: 1
+Experiments and executions will be published to organization 'yourorg'
+Chaos Toolkit Cloud details saved at /Users/username/.chaostoolkit/settings.yaml
+```
+
+This is now ready to be used.
+
+### Change Chaos Toolkit Cloud Organization
+
+The [Chaos Toolkit Cloud][ctk] has support for multiple organisztions. You can 
+specify which of the organizations that you want the toolkit to use by 
+executing the `org` command:
+
+```console
+$ chaos org
+Fetching orgs from:https://console.chaostoolkit.com/api/v1/organizations
+Here are your known organizations:
+1) yourorg
+2) chaosiq
+Default organization to publish to: 2
+Experiments and executions will be published to organization 'chaosiq'
+Chaos Toolkit Cloud details saved at /Users/username/.chaostoolkit/settings.yaml
 ```
 
 This is now ready to be used.
@@ -82,7 +108,7 @@ This is now ready to be used.
 Once this extension is installed, it starts transmitting the experiments
 and their executions to the [Chaos Toolkit Cloud][ctk] in your account.
 
-```
+```console
 $ chaos run test.json
 [2019-07-01 14:49:40 INFO] Validating the experiment's syntax
 [2019-07-01 14:49:40 INFO] Experiment looks valid
