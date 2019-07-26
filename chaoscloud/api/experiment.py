@@ -34,9 +34,6 @@ def publish_experiment(session: requests.Session,
         logger.debug("Experiment has not changed since it was created")
         return r
     else:
-        # logger.info("Experiment available at {}".format(
-        #    urls.clean(r.headers["Content-Location"])))
-
         payload = r.json()
         set_experiment_id(payload["id"], experiment)
 

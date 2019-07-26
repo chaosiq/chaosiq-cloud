@@ -82,7 +82,8 @@ setup_params = dict(
             'signin = chaoscloud.cli:signin',
             'publish = chaoscloud.cli:publish',
             'enable = chaoscloud.cli:enable',
-            'disable = chaoscloud.cli:disable'
+            'disable = chaoscloud.cli:disable',
+            'org = chaoscloud.cli:org'
         ]
     }
 )
