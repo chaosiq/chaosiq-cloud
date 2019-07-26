@@ -1,6 +1,8 @@
 # Chaos Toolkit Cloud extension for the Chaos Toolkit
 
 [![Build Status](https://travis-ci.com/chaosiq/chaostoolkit-cloud.svg?branch=master)](https://travis-ci.com/chaosiq/chaostoolkit-cloud)
+[![Python versions](https://img.shields.io/pypi/pyversions/chaostoolkit-cloud.svg)](https://www.python.org/)
+[![Has wheel](https://img.shields.io/pypi/wheel/chaostoolkit-cloud.svg)](http://pythonwheels.com/)
 
 This is the Chaos Toolkit Cloud extension package for the [Chaos Toolkit][chaostoolkit].
 
