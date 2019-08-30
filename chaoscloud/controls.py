@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from typing import Any, Dict, List, NoReturn
+from urllib.parse import urlsplit, urlunsplit
 
 from chaoslib.experiment import initialize_run_journal
 from chaoslib.types import Activity, Configuration, Extension, \
@@ -13,12 +14,14 @@ from .api.execution import initialize_execution, publish_event, \
 from .api.policy import is_allowed_to_continue
 from .settings import is_feature_enabled
 
+Organizations = List[Dict[str, Any]]
+
 
 def configure_control(experiment: Experiment, settings: Settings,
                       configuration: Configuration = None,
                       secrets: Secrets = None, url: str = None,
                       verify_tls: bool = True,
-                      organizations: List[Dict[str, Any]] = None) -> NoReturn:
+                      organizations: Organizations = None) -> NoReturn:
     """
     Initialize the execution's journal and publish both the experiment
     and the journal.
@@ -36,6 +39,41 @@ def configure_control(experiment: Experiment, settings: Settings,
         initialize_execution(session, experiment, journal)
 
 
+def after_loading_experiment_control(context: str, state: Experiment, *,
+                                     url: str, verify_tls: bool = False,
+                                     organizations: Organizations = None) \
+                                         -> NoReturn:
+    """
+    Inject the source of the experiment, when it is a URL, into the experiment
+    so we can determine if that experiment had already been seen in that
+    organization. If so, we can add the execution to that existing experiment.
+
+    We do not send any username/password/token found in the network location
+    part of the source, if it's an URL. It is stripped out before being sent.
+    """
+    parsed = urlsplit(context)
+    if parsed.scheme.lower() not in ('http', 'https'):
+        # probably not even a url, maybe a local path
+        return
+
+    dup = list(parsed)
+    # we do not want to track sensitive data such as username/password/tokens
+    if parsed.username or parsed.password:
+        dup[1] = parsed.hostname
+        context = urlunsplit(dup)
+
+    extensions = state.setdefault("extensions", [])
+    for extension in extensions:
+        if extension["name"] == "chaosiq":
+            extension["source"] = context
+            break
+    else:
+        extensions.append({
+            "name": "chaosiq",
+            "source": context
+        })
+
+
 def before_experiment_control(context: Experiment,
                               configuration: Configuration = None,
                               secrets: Secrets = None,
@@ -43,7 +81,7 @@ def before_experiment_control(context: Experiment,
                               extensions: List[Extension] = None,
                               *, url: str,
                               verify_tls: bool = False,
-                              organizations: List[Dict[str, Any]] = None) \
+                              organizations: Organizations = None) \
                                   -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -69,7 +107,7 @@ def after_experiment_control(context: Experiment,
                              extensions: List[Extension] = None,
                              *, url: str,
                              verify_tls: bool = False,
-                             organizations: List[Dict[str, Any]] = None) \
+                             organizations: Organizations = None) \
                                  -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -90,7 +128,7 @@ def before_hypothesis_control(context: Hypothesis,
                               extensions: List[Extension] = None,
                               *, url: str,
                               verify_tls: bool = False,
-                              organizations: List[Dict[str, Any]] = None) \
+                              organizations: Organizations = None) \
                                   -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -111,7 +149,7 @@ def after_hypothesis_control(context: Hypothesis,
                              extensions: List[Extension] = None,
                              *, url: str,
                              verify_tls: bool = False,
-                             organizations: List[Dict[str, Any]] = None) \
+                             organizations: Organizations = None) \
                                  -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -130,7 +168,7 @@ def before_method_control(context: Experiment,
                           settings: Settings = None,
                           extensions: List[Extension] = None,
                           *, url: str, verify_tls: bool = False,
-                          organizations: List[Dict[str, Any]] = None) \
+                          organizations: Organizations = None) \
                               -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -149,7 +187,7 @@ def after_method_control(context: Experiment,
                          settings: Settings = None,
                          extensions: List[Extension] = None,
                          *, url: str, verify_tls: bool = False,
-                         organizations: List[Dict[str, Any]] = None) \
+                         organizations: Organizations = None) \
                              -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -169,7 +207,7 @@ def before_rollback_control(context: Experiment,
                             settings: Settings = None,
                             extensions: List[Extension] = None,
                             *, url: str, verify_tls: bool = False,
-                            organizations: List[Dict[str, Any]] = None) \
+                            organizations: Organizations = None) \
                                 -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -190,7 +228,7 @@ def after_rollback_control(context: Experiment,
                            settings: Settings = None,
                            extensions: List[Extension] = None,
                            *, url: str, verify_tls: bool = False,
-                           organizations: List[Dict[str, Any]] = None) \
+                           organizations: Organizations = None) \
                                -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -210,7 +248,7 @@ def before_activity_control(context: Activity,
                             settings: Settings = None,
                             extensions: List[Extension] = None,
                             *, url: str, verify_tls: bool = False,
-                            organizations: List[Dict[str, Any]] = None) \
+                            organizations: Organizations = None) \
                                 -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
@@ -230,7 +268,7 @@ def after_activity_control(context: Activity, state: Run,
                            settings: Settings = None,
                            extensions: List[Extension] = None,
                            *, url: str, verify_tls: bool = False,
-                           organizations: List[Dict[str, Any]] = None) \
+                           organizations: Organizations = None) \
                                -> NoReturn:
     if not is_feature_enabled(settings, "publish"):
         return
