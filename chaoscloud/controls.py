@@ -92,7 +92,7 @@ def before_experiment_control(context: Experiment,
             extensions, settings)
         if not is_feature_enabled(settings, "policies"):
             logger.warning(
-                "\nChaos Toolkit extension has disabled checking for runtime "
+                "\nChaosIQ extension has disabled checking for runtime "
                 "policies.\n"
                 "Run `chaos enable policies` to activate them again.")
         else:
