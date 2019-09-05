@@ -35,7 +35,7 @@ def set_settings(url: str, token: str, disable_tls_verify: bool,
             'module': 'chaoscloud.controls',
             'arguments': {
                 'url': url,
-                'verify_tls': not disable_tls_verify,
+                'verify_tls': disable_tls_verify,
                 'organizations': get_orgs(settings)
             }
         }

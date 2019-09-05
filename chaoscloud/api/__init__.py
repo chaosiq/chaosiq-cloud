@@ -4,9 +4,7 @@ from typing import Any, Dict, Generator, List
 
 from chaoslib.types import Settings
 from logzero import logger
-import requests
 from requests import Session
-from urllib3.exceptions import InsecureRequestWarning
 
 from . import urls
 
@@ -46,10 +44,7 @@ def client_session(url: str, organizations: List[Dict[str, str]],
     with Session() as s:
         s.base_url = urls.org(urls.base(url), organization_id=org_id)
         s.headers.update(headers)
-        if verify_tls is False:  # pragma: no cover
-            requests.packages.urllib3.disable_warnings(
-                category=InsecureRequestWarning)
-            s.verify = False
+        s.verify = verify_tls
         yield s
 
 

@@ -8,6 +8,7 @@ import click
 from logzero import logger
 import requests
 import simplejson as json
+from urllib3.exceptions import InsecureRequestWarning
 
 from . import __version__
 from .api import client_session
@@ -63,7 +64,7 @@ def org(ctx: click.Context):
     token = get_auth_token(settings, url)
     disable_tls_verify = get_verify_tls(settings)
 
-    if (not token):
+    if not token:
         establish_credentials(settings_path)
     else:
         default_org = select_organization(url, token, disable_tls_verify)
@@ -176,6 +177,10 @@ def establish_credentials(settings_path):
         disable_tls_verify = click.confirm(
             "It looks like the server's TLS certificate cannot be verified. "
             "Do you wish to disable certificate verification for this server?")
+
+    if disable_tls_verify:  # pragma: no cover
+        requests.packages.urllib3.disable_warnings(
+            category=InsecureRequestWarning)
 
     default_org = select_organization(url, token, disable_tls_verify)
 

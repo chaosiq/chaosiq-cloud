@@ -36,8 +36,8 @@ def is_allowed_to_continue(session: requests.Session,
     if state.get("allowed", True) is False:
         policies = "\n".join([p["name"] for p in state.get("policies")])
         raise InterruptExecution(
-            "This experiment was interrupted due to policies:\n{}".format(
-                policies)
+            "The following safe guards disallow this execution from "
+            "continuing:\n{}".format(policies)
         )
 
 
