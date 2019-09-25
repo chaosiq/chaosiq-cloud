@@ -5,7 +5,7 @@ import requests_mock
 from chaoscloud.api import urls
 from chaoscloud.controls import configure_control
 
-ENDPOINT = "https://chaostoolkit.com"
+ENDPOINT = "https://chaosiq.io"
 
 
 def test_configure_control_creates_experiment_and_execution_when_new(

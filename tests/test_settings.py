@@ -6,17 +6,17 @@ def test_adding_new_chaosiq_settings(default_org):
     settings = {}
     hub_url = "https://myhub.com:9090/"
     token = "mytoken"
-    set_settings(hub_url, token, True, default_org, settings)
+    set_settings(hub_url, token, False, default_org, settings)
     assert 'auths' in settings
     assert 'myhub.com:9090' in settings['auths']
     assert settings['auths']['myhub.com:9090']['type'] == 'bearer'
     assert settings['auths']['myhub.com:9090']['value'] == token
 
     assert 'controls' in settings
-    assert 'chaostoolkit-cloud' in settings['controls']
+    assert 'chaosiq-cloud' in settings['controls']
 
-    assert 'provider' in settings['controls']['chaostoolkit-cloud']
-    provider = settings['controls']['chaostoolkit-cloud']['provider']
+    assert 'provider' in settings['controls']['chaosiq-cloud']
+    provider = settings['controls']['chaosiq-cloud']['provider']
     assert 'type' in provider
     assert 'module' in provider
     assert provider['type'] == 'python'
@@ -35,7 +35,7 @@ def test_updating_existing_chaosiq_settings(default_org):
     token = "mytoken"
     settings = {
         'controls': {
-            'chaostoolkit-cloud': {
+            'chaosiq-cloud': {
                 'provider': {
                     'type': 'python',
                     'module': 'chaoscloud.controls',
@@ -47,17 +47,17 @@ def test_updating_existing_chaosiq_settings(default_org):
             }
         }
     }
-    set_settings(hub_url, token, False, default_org, settings=settings)
+    set_settings(hub_url, token, True, default_org, settings=settings)
     assert 'auths' in settings
     assert 'myotherhub.com:9080' in settings['auths']
     assert settings['auths']['myotherhub.com:9080']['type'] == 'bearer'
     assert settings['auths']['myotherhub.com:9080']['value'] == token
 
     assert 'controls' in settings
-    assert 'chaostoolkit-cloud' in settings['controls']
+    assert 'chaosiq-cloud' in settings['controls']
 
-    assert 'provider' in settings['controls']['chaostoolkit-cloud']
-    provider = settings['controls']['chaostoolkit-cloud']['provider']
+    assert 'provider' in settings['controls']['chaosiq-cloud']
+    provider = settings['controls']['chaosiq-cloud']['provider']
     assert 'type' in provider
     assert 'module' in provider
     assert provider['type'] == 'python'
@@ -82,7 +82,7 @@ def test_update_auth_token(default_org):
             }
         },
         'controls': {
-            'chaostoolkit-cloud': {
+            'chaosiq-cloud': {
                 'provider': {
                     'type': 'python',
                     'module': 'chaoscloud.controls',
@@ -111,7 +111,7 @@ def test_get_endpoint_url():
             }
         },
         'controls': {
-            'chaostoolkit-cloud': {
+            'chaosiq-cloud': {
                 'provider': {
                     'type': 'python',
                     'module': 'chaoscloud.controls',
@@ -135,7 +135,7 @@ def test_get_default_when_none_found():
             }
         },
         'controls': {
-            'chaostoolkit-cloud': {
+            'chaosiq-cloud': {
                 'provider': {
                     'type': 'python',
                     'module': 'chaoscloud.controls',
@@ -146,4 +146,4 @@ def test_get_default_when_none_found():
             }
         }
     }
-    assert get_endpoint_url(settings) == 'https://console.chaostoolkit.com'
+    assert get_endpoint_url(settings) == 'https://console.chaosiq.io'

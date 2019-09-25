@@ -25,19 +25,19 @@ def is_allowed_to_continue(session: requests.Session,
     if not execution_id:
         return
 
-    policies_url = urls.policy(urls.execution(
+    safeguards_url = urls.safeguard(urls.execution(
         urls.experiment(session.base_url, experiment_id=experiment_id),
         execution_id=execution_id))
-    r = session.get(policies_url)
+    r = session.get(safeguards_url)
     if r.status_code > 399:
         return
 
     state = r.json()
     if state.get("allowed", True) is False:
-        policies = "\n".join([p["name"] for p in state.get("policies")])
+        safeguards = "\n".join([p["name"] for p in state.get("policies")])
         raise InterruptExecution(
             "The following safe guards disallow this execution from "
-            "continuing:\n{}".format(policies)
+            "continuing:\n{}".format(safeguards)
         )
 
 

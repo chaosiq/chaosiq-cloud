@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
-__all__ = ["base", "experiment", "execution", "clean", "policy", "host", "org",
-           "full"]
+__all__ = ["base", "experiment", "execution", "clean", "safeguard", "host",
+           "org", "full"]
 
 
 def base(base_url: str) -> str:
@@ -45,9 +45,9 @@ def org(base_url: str, organization_id: str = None) -> str:
     return '/'.join([base_url, 'organizations', organization_id])
 
 
-def policy(base_execution_url: str) -> str:
+def safeguard(base_execution_url: str) -> str:
     """
-    Build the URL to fetch policies from for an execution
+    Build the URL to fetch safeguards from for an execution
     """
     return '/'.join([base_execution_url, 'policies'])
 
@@ -71,7 +71,7 @@ def host(url: str) -> str:
 def full(base: str, org_id: str, experiment_id: str = None,
          execution_id: str = None, with_experiments: bool = False,
          with_executions: bool = False, with_events: bool = False,
-         with_policies: bool = False) -> str:
+         with_safeguards: bool = False) -> str:
     """
     Build the appropriate url for various resources.
 
@@ -85,7 +85,7 @@ def full(base: str, org_id: str, experiment_id: str = None,
       will give `base/organizations/org_id/experiments/experiment_id/executions/execution_id`
     * `with_events` set
       will give `base/organizations/org_id/experiments/experiment_id/executions/execution_id/events`
-    * `with_policies` set
+    * `with_safeguards` set
       will give `base/organizations/org_id/policies`
     """  # noqa: E501
     url = org(base, org_id)
@@ -95,6 +95,6 @@ def full(base: str, org_id: str, experiment_id: str = None,
             url = execution(url, execution_id=execution_id)
             if with_events:
                 url = event(url)
-    if with_policies:
-        url = policy(url)
+    if with_safeguards:
+        url = safeguard(url)
     return url

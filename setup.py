@@ -22,8 +22,8 @@ def get_version_from_package() -> str:
                 return version
 
 
-name = 'chaostoolkit-cloud'
-desc = 'Chaos Toolkit Cloud plugin for the Chaos Toolkit CLI'
+name = 'chaosiq-cloud'
+desc = 'ChaosIQ plugin for the Chaos Toolkit CLI'
 
 with io.open('README.md', encoding='utf-8') as strm:
     long_desc = strm.read()
@@ -43,7 +43,7 @@ classifiers = [
 ]
 author = 'ChaosIQ'
 author_email = 'contact@chaosiq.io'
-url = 'https://chaostoolkit.com'
+url = 'https://chaosiq.io'
 license = 'Apache License Version 2.0'
 packages = [
     'chaoscloud',

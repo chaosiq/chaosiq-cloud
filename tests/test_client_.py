@@ -1,6 +1,6 @@
 from chaoscloud.api import client_session
 
-ENDPOINT = "https://console.chaostoolkit.com"
+ENDPOINT = "https://console.chaosiq.io"
 
 
 def test_do_not_set_auths_when_none_found_in_settings(organizations):
@@ -11,7 +11,7 @@ def test_do_not_set_auths_when_none_found_in_settings(organizations):
 def test_set_authorization_from_settings(organizations):
     settings = {
         "auths": {
-            "console.chaostoolkit.com": {
+            "console.chaosiq.io": {
                 "type": "digest",
                 "value": "blah"
             }
@@ -26,7 +26,7 @@ def test_set_authorization_from_settings(organizations):
 def test_set_bearer_type_by_default_on_authorization(organizations):
     settings = {
         "auths": {
-            "console.chaostoolkit.com": {
+            "console.chaosiq.io": {
                 "value": "blah"
             }
         }

@@ -10,7 +10,7 @@ from chaoscloud.api.execution import initialize_execution, publish_execution, \
     fetch_execution, publish_event
 
 
-ENDPOINT = "https://console.chaostoolkit.com"
+ENDPOINT = "https://console.chaosiq.io"
 
 
 def test_execution_not_created_when_experiment_is_invalid_type(
@@ -299,7 +299,7 @@ def test_publish_event(organizations, default_org_id):
             assert r["specversion"] == "0.2"
             assert r["contenttype"] == "application/json"
             assert r["type"] == "start-experiment"
-            assert r["source"] == "chaostoolkit-cloud"
+            assert r["source"] == "chaosiq-cloud"
             assert "id" in r
             assert "time" in r
             assert "data" in r

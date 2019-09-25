@@ -7,7 +7,7 @@ from chaoscloud.api import client_session
 from chaoscloud.api.experiment import publish_experiment
 from chaoscloud.api import urls
 
-ENDPOINT = "https://chaostoolkit.com"
+ENDPOINT = "https://chaosiq.io"
 
 
 def test_experiment_not_created_when_invalid_type(organizations,

@@ -7,7 +7,7 @@ function lint () {
 }
 
 function build () {
-    echo "Building the chaostoolkit-cloud package"
+    echo "Building the chaosiq-cloud package"
     python setup.py build
 }
 

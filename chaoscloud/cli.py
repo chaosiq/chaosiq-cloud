@@ -18,10 +18,10 @@ from .api.organization import request_orgs
 from .api.ssl import verify_ssl_certificate
 from .api import urls
 from .settings import set_settings, get_endpoint_url, get_orgs, \
-    verify_tls_certs, enable_policies, enable_publishing, disable_policies, \
-    disable_publishing, get_verify_tls, get_auth_token
+    verify_tls_certs, enable_safeguards, enable_publishing, \
+    disable_safeguards, disable_publishing, get_verify_tls, get_auth_token
 
-__all__ = ["signin", "publish", "org"]
+__all__ = ["signin", "publish", "org", "enable", "disable"]
 
 
 @click.group()
@@ -34,32 +34,32 @@ def cli(ctx: click.Context, settings: str = CHAOSTOOLKIT_CONFIG_PATH):
     ctx.obj["settings_path"] = click.format_filename(settings)
 
 
-@cli.command(help="Sign-in with your Chaos Toolkit Cloud credentials")
+@cli.command(help="Sign-in with your ChaosIQ credentials")
 @click.pass_context
 def signin(ctx: click.Context):
     """
-    Sign-in to the Chaos Toolkit Cloud.
+    Sign-in to ChaosIQ.
     """
     settings_path = ctx.obj["settings_path"]
     establish_credentials(settings_path)
 
 
-@cli.command(help="Set the Chaos Toolkit Cloud organisation")
+@cli.command(help="Set ChaosIQ organisation")
 @click.pass_context
 def org(ctx: click.Context):
     """
-    List and select a new Chaos Toolkit Cloud organization to use.
+    List and select a new ChaosIQ organization to use.
 
     \b
     In order to benefit from these features, you must have registered with
-    Chaos Toolkit Cloud and retrieved an access token. You should set that
+    ChaosIQ and retrieved an access token. You should set that
     token in the configuration file with `chaos signin`.
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path) or {}
 
     url = get_endpoint_url(
-        settings, "https://console.chaostoolkit.com")
+        settings, "https://console.chaosiq.io")
 
     token = get_auth_token(settings, url)
     disable_tls_verify = get_verify_tls(settings)
@@ -72,20 +72,20 @@ def org(ctx: click.Context):
         set_settings(url, token, disable_tls_verify, default_org, settings)
         save_settings(settings, settings_path)
 
-        click.echo("Chaos Toolkit Cloud details saved at {}".format(
+        click.echo("ChaosIQ details saved at {}".format(
             settings_path))
 
 
-@cli.command(help="Publish your experiment's journal to Chaos Toolkit Cloud")
+@cli.command(help="Publish your experiment's journal to ChaosIQ")
 @click.argument('journal')
 @click.pass_context
 def publish(ctx: click.Context, journal: str):
     """
-    Publish your experiment's findings to Chaos Toolkit Cloud.
+    Publish your experiment's findings to ChaosIQ.
 
     \b
     In order to benefit from these features, you must have registered with
-    Chaos Toolkit Cloud and retrieved an access token. You should set that
+    ChaosIQ and retrieved an access token. You should set that
     token in the configuration file with `chaos signin`.
     """
     settings_path = ctx.obj["settings_path"]
@@ -111,37 +111,37 @@ def publish(ctx: click.Context, journal: str):
                     r.headers["Content-Location"]))
 
 
-@cli.command(help="Enable a Chaos Toolkit Cloud feature")
-@click.argument('feature', type=click.Choice(['policies', 'publish']))
+@cli.command(help="Enable a ChaosIQ feature")
+@click.argument('feature', type=click.Choice(['safeguards', 'publish']))
 @click.pass_context
 def enable(ctx: click.Context, feature: str):
     """
     Enable one of the extension's features: `publish` to push experiment
-    and executions to the Chaos Toolkit Cloud. `policies` to validate the
+    and executions to ChaosIQ. `safeguards` to validate the
     run is allowed to continue at runtime.
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path)
-    if feature == "policies":
-        enable_policies(settings)
+    if feature == "safeguards":
+        enable_safeguards(settings)
     elif feature == "publish":
         enable_publishing(settings)
     save_settings(settings, settings_path)
 
 
-@cli.command(help="Disable a Chaos Toolkit Cloud feature")
-@click.argument('feature', type=click.Choice(['policies', 'publish']))
+@cli.command(help="Disable a ChaosIQ feature")
+@click.argument('feature', type=click.Choice(['safeguards', 'publish']))
 @click.pass_context
 def disable(ctx: click.Context, feature: str):
     """
     Disable one of the extension's features: `publish` which pushes experiment
-    and executions to the Chaos Toolkit Cloud. `policies` which validates the
+    and executions to ChaosIQ. `safeguards` which validates the
     run is allowed to continue at runtime.
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path)
-    if feature == "policies":
-        disable_policies(settings)
+    if feature == "safeguards":
+        disable_safeguards(settings)
     elif feature == "publish":
         disable_publishing(settings)
     save_settings(settings, settings_path)
@@ -154,16 +154,16 @@ def establish_credentials(settings_path):
     settings = load_settings(settings_path) or {}
 
     default_url = get_endpoint_url(
-        settings, "https://console.chaostoolkit.com")
+        settings, "https://console.chaosiq.io")
 
     url = click.prompt(
-        click.style("Chaos Toolkit Cloud url", fg='green'),
+        click.style("ChaosIQ url", fg='green'),
         type=str, show_default=True, default=default_url)
     url = urlparse(url)
     url = "://".join([url.scheme, url.netloc])
 
     token = click.prompt(
-        click.style("Chaos Toolkit Cloud token", fg='green'),
+        click.style("ChaosIQ token", fg='green'),
         type=str, hide_input=True)
     token = token.strip()
 
@@ -187,14 +187,13 @@ def establish_credentials(settings_path):
     set_settings(url, token, disable_tls_verify, default_org, settings)
     save_settings(settings, settings_path)
 
-    click.echo("Chaos Toolkit Cloud details saved at {}".format(settings_path))
+    click.echo("ChaosIQ details saved at {}".format(settings_path))
 
 
 def select_organization(url, token, disable_tls_verify) -> str:
     default_org = None
     orgs_url = urls.org(urls.base(url))
     while True:
-        click.echo("Fetching orgs from:{}".format(orgs_url))
         r = request_orgs(orgs_url, token, disable_tls_verify)
         if r.status_code != 200:
             logger.debug(

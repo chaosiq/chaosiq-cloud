@@ -1,30 +1,30 @@
-# Chaos Toolkit Cloud extension for the Chaos Toolkit
+# ChaosIQ extension for the Chaos Toolkit
 
-[![Build Status](https://travis-ci.com/chaosiq/chaostoolkit-cloud.svg?branch=master)](https://travis-ci.com/chaosiq/chaostoolkit-cloud)
-[![Python versions](https://img.shields.io/pypi/pyversions/chaostoolkit-cloud.svg)](https://www.python.org/)
-[![Has wheel](https://img.shields.io/pypi/wheel/chaostoolkit-cloud.svg)](http://pythonwheels.com/)
+[![Build Status](https://travis-ci.com/chaosiq/chaosiq-cloud.svg?branch=master)](https://travis-ci.com/chaosiq/chaosiq-cloud)
+[![Python versions](https://img.shields.io/pypi/pyversions/chaosiq-cloud.svg)](https://www.python.org/)
+[![Has wheel](https://img.shields.io/pypi/wheel/chaosiq-cloud.svg)](http://pythonwheels.com/)
 
-This is the Chaos Toolkit Cloud extension package for the [Chaos Toolkit][chaostoolkit].
+This is the ChaosIQ extension package for the [Chaos Toolkit][chaostoolkit].
 
-[chaostoolkit]: https://chaostoolkit.com/
+[chaostoolkit]: https://chaostoolkit.org
 
 ## Purpose
 
-The purpose of this package is to communicate with [Chaos Toolkit Cloud][ctk] in
+The purpose of this package is to communicate with [ChaosIQ][chaosiq] in
 order to:
 
 * Publish experiments
 * Publish executions of these experiments
-* Control the execution via a set of controls
+* Safely guard the execution via a set of controls
 
-[ctk]: https://chaostoolkit.com/
+[chaosiq]: https://chaosiq.io
 
 ## Install
 
 Install this package as any other Python packages:
 
 ```
-$ pip install -U chaostoolkit-cloud
+$ pip install -U chaosiq-cloud
 ```
 
 ## Usage
@@ -37,68 +37,69 @@ $ chaos
 Usage: chaos [OPTIONS] COMMAND [ARGS]...
 
 Options:
-  --version           Show the version and exit.
-  --verbose           Display debug level traces.
-  --no-version-check  Do not search for an updated version of the
-                      chaostoolkit.
-  --change-dir TEXT   Change directory before running experiment.
-  --no-log-file       Disable logging to file entirely.
-  --log-file TEXT     File path where to write the command's log.  [default:
-                      chaostoolkit.log]
-  --settings TEXT     Path to the settings file.  [default:
-                      /Users/russellmiles/.chaostoolkit/settings.yaml]
-  --help              Show this message and exit.
+  --version                   Show the version and exit.
+  --verbose                   Display debug level traces.
+  --no-version-check          Do not search for an updated version of the
+                              chaostoolkit.
+  --change-dir TEXT           Change directory before running experiment.
+  --no-log-file               Disable logging to file entirely.
+  --log-file TEXT             File path where to write the command's log.
+                              [default: chaostoolkit.log]
+  --log-format [string|json]  Console logging format: string, json.
+  --settings TEXT             Path to the settings file.  [default:
+                              ~/.chaostoolkit/settings.yaml]
+  --help                      Show this message and exit.
 
 Commands:
-  disable   Disable a Chaos Toolkit Cloud feature
+  disable   Disable a ChaosIQ feature
   discover  Discover capabilities and experiments.
-  enable    Enable a Chaos Toolkit Cloud feature
+  enable    Enable a ChaosIQ feature
   info      Display information about the Chaos Toolkit environment.
   init      Initialize a new experiment from discovered capabilities.
-  org       Set the Chaos Toolkit Cloud organisation
-  publish   Publish your experiment's journal to Chaos Toolkit Cloud
+  org       Set ChaosIQ organisation
+  publish   Publish your experiment's journal to ChaosIQ
   run       Run the experiment loaded from SOURCE, either a local file or a...
-  signin    Sign-in with your Chaos Toolkit Cloud credentials
+  signin    Sign-in with your ChaosIQ credentials
   validate  Validate the experiment at PATH.
 ```
 
-### Sign-in with the Chaos Toolkit Cloud
+### Sign-in with ChaosIQ
 
-In order to work, you first need to authenticate with your account on the
-[Chaos Toolkit Cloud][ctk]. First, go there and generate a new token. Copy that
+In order to work, you first need to authenticate with your account on
+[ChaosIQ][chaosiq]. First, go there and generate a new token. Copy that
 token and paste it when asked from the next command:
 
 
 ```console
-$ chaos signin 
-Chaos Toolkit Cloud url [https://console.chaostoolkit.com]: 
-Chaos Toolkit Cloud token: 
-Fetching orgs from:https://console.chaostoolkit.com/api/v1/organizations
+$ chaos signin
+ChaosIQ url [https://console.chaosiq.io]: 
+ChaosIQ token: 
 Here are your known organizations:
 1) yourorg
-2) chaosiq
-Default organization to publish to: 1
-Experiments and executions will be published to organization 'yourorg'
-Chaos Toolkit Cloud details saved at /Users/username/.chaostoolkit/settings.yaml
+2) TeamA
+3) TeamB
+Default organization to publish to: 2
+Experiments and executions will be published to organization 'TeamA'
+ChaosIQ details saved at ~/.chaostoolkit/settings.yaml
 ```
 
 This is now ready to be used.
 
-### Change Chaos Toolkit Cloud Organization
+### Change ChaosIQ Organization
 
-The [Chaos Toolkit Cloud][ctk] has support for multiple organisztions. You can 
-specify which of the organizations that you want the toolkit to use by 
-executing the `org` command:
+[ChaosIQ][chaosiq] has support for multiple organizations. You can 
+specify which of the organizations that you want the ChaosIQ extension to use
+by  executing the `org` command:
 
 ```console
 $ chaos org
-Fetching orgs from:https://console.chaostoolkit.com/api/v1/organizations
 Here are your known organizations:
 1) yourorg
-2) chaosiq
-Default organization to publish to: 2
-Experiments and executions will be published to organization 'chaosiq'
-Chaos Toolkit Cloud details saved at /Users/username/.chaostoolkit/settings.yaml
+2) TeamA
+3) TeamB
+Default organization to publish to: 3
+Experiments and executions will be published to organization 'TeamB'
+ChaosIQ details saved at ~/.chaostoolkit/settings.yaml
 ```
 
 This is now ready to be used.
@@ -106,48 +107,52 @@ This is now ready to be used.
 ### Publish experiments and executions as you run
 
 Once this extension is installed, it starts transmitting the experiments
-and their executions to the [Chaos Toolkit Cloud][ctk] in your account.
+and their executions to the [ChaosIQ][chaosiq] in your selected organization.
 
 ```console
 $ chaos run test.json
-[2019-07-01 14:49:40 INFO] Validating the experiment's syntax
-[2019-07-01 14:49:40 INFO] Experiment looks valid
-[2019-07-01 14:49:40 INFO] Running experiment: Look token in file
-[2019-07-01 14:49:40 INFO] Execution available at https://console.chaostoolkit.com/MyName/experiments/fc36eb45-4718-4c4a-a50e-503552116cf3/executions/c07afe83-b590-486f-b149-de3d6de7e155
-[2019-07-01 14:49:40 INFO] Steady state hypothesis: Our hypothesis is tour token is part of the file
-[2019-07-01 14:49:41 INFO] Probe: grep-file
-[2019-07-01 14:49:41 INFO] Steady state hypothesis is met!
-[2019-07-01 14:49:41 INFO] Action: remove-token
-[2019-07-01 14:49:41 INFO] Steady state hypothesis: Our hypothesis is tour roken is part of the file
-[2019-07-01 14:49:41 INFO] Probe: grep-file
-[2019-07-01 14:49:42 INFO] Steady state hypothesis is met!
-[2019-07-01 14:49:42 INFO] Let's rollback...
-[2019-07-01 14:49:42 INFO] Rollback: remove-token
-[2019-07-01 14:49:42 INFO] Action: remove-token
-[2019-07-01 14:49:42 INFO] Experiment ended with status: completed
+[2019-09-25 14:42:34 INFO] Validating the experiment's syntax
+[2019-09-25 14:42:34 INFO] Experiment looks valid
+[2019-09-25 14:42:34 INFO] Running experiment: EC2 instances are self-healing
+[2019-09-25 14:42:35 INFO] Execution available at https://console.chaosiq.io/TeamB/executions/f2133988-a6c0-4c48-ac29-c167cea078c5
+[2019-09-25 14:42:35 INFO] Steady state hypothesis: EC2 instance self-heals
+[2019-09-25 14:42:36 INFO] Probe: there-should-be-one-running-instance
+[2019-09-25 14:42:39 INFO] Steady state hypothesis is met!
+[2019-09-25 14:42:40 INFO] Action: stopping-instance-now
+[2019-09-25 14:42:41 INFO] Pausing after activity for 5s...
+[2019-09-25 14:42:47 INFO] Steady state hypothesis: EC2 instance self-heals
+[2019-09-25 14:42:48 INFO] Probe: there-should-be-one-running-instance
+[2019-09-25 14:42:50 CRITICAL] Steady state probe 'there-should-be-one-running-instance' is not in the given tolerance so failing this experiment
+[2019-09-25 14:42:50 INFO] Let's rollback...
+[2019-09-25 14:42:50 INFO] Rollback: starting-instance-again
+[2019-09-25 14:42:51 INFO] Pausing before next activity for 15s...
+[2019-09-25 14:43:06 INFO] Action: starting-instance-again
+[2019-09-25 14:43:08 INFO] Experiment ended with status: deviated
+[2019-09-25 14:43:08 INFO] The steady-state has deviated, a weakness may have been discovered
+
 ```
 
 ### Publish existing execution
 
 The `publish` command enables you to manually push your experimental 
-findings, typically recorded in the `journal.json`, to your Chaos Toolkit
-account.
+findings, typically recorded in the `journal.json`, to your ChaosIQ
+organization.
 
-### Disable policies checking
+### Disable safe guards checking
 
 During development time of your experiment, you may wish to disable checking
-for policies as they can slow your work down. They aren't always relevant
+for safeguards as they can slow your work down. They aren't always relevant
 either. To disable the extension from requesting if the execution is allowed
 to carry on:
 
 ```console
-$ chaos disable policies
+$ chaos disable safeguards
 ```
 
 Obviously, run the mirroring command to enable them back:
 
 ```console
-$ chaos enable policies
+$ chaos enable safeguards
 ```
 
 ### Disable publishing experiments and executions
@@ -201,6 +206,12 @@ $ pip install -e .
 
 Now, you can edit the files and they will be automatically be seen by your
 environment, even when running from the `chaos` command locally.
+
+Don't forget to run the linter regularly:
+
+```
+$ pylama chaoscloud
+```
 
 ### Test
 

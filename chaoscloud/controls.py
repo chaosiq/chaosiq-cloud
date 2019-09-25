@@ -11,7 +11,7 @@ from .api import client_session
 from .api.experiment import publish_experiment
 from .api.execution import initialize_execution, publish_event, \
     publish_execution
-from .api.policy import is_allowed_to_continue
+from .api.safeguard import is_allowed_to_continue
 from .settings import is_feature_enabled
 
 Organizations = List[Dict[str, Any]]
@@ -28,7 +28,7 @@ def configure_control(experiment: Experiment, settings: Settings,
     """
     if not is_feature_enabled(settings, "publish"):
         logger.warning(
-            "\nChaos Toolkit extension has disabled publishing\n"
+            "\nChaosIQ extension has disabled publishing\n"
             "which essentially disables the extension entirely.\n"
             "Run `chaos enable publish` to activate the extension again.")
         return
@@ -90,11 +90,11 @@ def before_experiment_control(context: Experiment,
         publish_event(
             session, "starting-experiment", context, configuration, secrets,
             extensions, settings)
-        if not is_feature_enabled(settings, "policies"):
+        if not is_feature_enabled(settings, "safeguards"):
             logger.warning(
                 "\nChaosIQ extension has disabled checking for runtime "
-                "policies.\n"
-                "Run `chaos enable policies` to activate them again.")
+                "safe guards.\n"
+                "Run `chaos enable safeguards` to activate them again.")
         else:
             is_allowed_to_continue(session, extensions)
 
@@ -117,7 +117,7 @@ def after_experiment_control(context: Experiment,
             session, "experiment-finished", context, configuration, secrets,
             extensions, settings, state)
         publish_execution(session, state)
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -137,7 +137,7 @@ def before_hypothesis_control(context: Hypothesis,
         publish_event(
             session, "starting-hypothesis", context, configuration, secrets,
             extensions, settings)
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -158,7 +158,7 @@ def after_hypothesis_control(context: Hypothesis,
         publish_event(
             session, "hypothesis-finished", context, configuration, secrets,
             extensions, settings, state)
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -177,7 +177,7 @@ def before_method_control(context: Experiment,
         publish_event(
             session, "starting-method", context, configuration, secrets,
             extensions, settings)
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -197,7 +197,7 @@ def after_method_control(context: Experiment,
             session, "method-finished", context, configuration, secrets,
             extensions, settings, state)
 
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -217,7 +217,7 @@ def before_rollback_control(context: Experiment,
             session, "starting-rollback", context, configuration, secrets,
             extensions, settings)
 
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -238,7 +238,7 @@ def after_rollback_control(context: Experiment,
             session, "rollback-finished", context, configuration, secrets,
             extensions, settings, state)
 
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -258,7 +258,7 @@ def before_activity_control(context: Activity,
             session, "starting-activity", context, configuration, secrets,
             extensions, settings)
 
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 
 
@@ -278,5 +278,5 @@ def after_activity_control(context: Activity, state: Run,
             session, "activity-finished", context, configuration, secrets,
             extensions, settings, state)
 
-        if is_feature_enabled(settings, "policies"):
+        if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)

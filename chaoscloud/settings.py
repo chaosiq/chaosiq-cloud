@@ -5,14 +5,14 @@ from urllib.parse import urlparse
 from chaoslib.types import Control, Settings
 
 __all__ = ["set_settings", "get_endpoint_url", "disable_publishing",
-           "enable_publishing", "disable_policies", "enable_policies",
+           "enable_publishing", "disable_safeguards", "enable_safeguards",
            "is_feature_enabled", "get_verify_tls", "get_auth_token"]
 
 
 def set_settings(url: str, token: str, disable_tls_verify: bool,
                  default_org: Dict[str, str], settings: Settings):
     """
-    Set the Chaos Toolkit Cloud related entries in the Chaos Toolkit settings.
+    Set the ChaosIQ Cloud related entries in the Chaos Toolkit settings.
 
     This essentially does two things:
 
@@ -28,7 +28,7 @@ def set_settings(url: str, token: str, disable_tls_verify: bool,
     control.update({
         'features': {
             'publish': 'on',
-            'policies': 'on',
+            'safeguards': 'on',
         },
         'provider': {
             'type': 'python',
@@ -52,23 +52,23 @@ def enable_publishing(settings: Settings):
     control.setdefault('features', {})['publish'] = "on"
 
 
-def disable_policies(settings: Settings):
+def disable_safeguards(settings: Settings):
     control = get_control(settings)
-    control.setdefault('features', {})['policies'] = "off"
+    control.setdefault('features', {})['safeguards'] = "off"
 
 
-def enable_policies(settings: Settings):
+def enable_safeguards(settings: Settings):
     control = get_control(settings)
-    control.setdefault('features', {})['policies'] = "on"
+    control.setdefault('features', {})['safeguards'] = "on"
 
 
 def get_endpoint_url(settings: Settings,
-                     default='https://console.chaostoolkit.com') -> str:
+                     default='https://console.chaosiq.io') -> str:
     """
-    Get the configured URL of the Chaos Toolkit endpoint.
+    Get the configured URL of the ChaosIQ endpoint.
     """
     return settings.get('controls', {}).\
-        get('chaostoolkit-cloud', {}).\
+        get('chaosiq-cloud', {}).\
         get('provider', {}).\
         get('arguments', {}).\
         get('url', default)
@@ -76,10 +76,10 @@ def get_endpoint_url(settings: Settings,
 
 def get_verify_tls(settings: Settings) -> str:
     """
-    Get the configured tls verify of the Chaos Toolkit Cloud endpoint.
+    Get the configured tls verify of the ChaosIQ endpoint.
     """
     return settings.get('controls', {}).\
-        get('chaostoolkit-cloud', {}).\
+        get('chaosiq-cloud', {}).\
         get('provider', {}).\
         get('arguments', {}).\
         get('verify_tls')
@@ -117,12 +117,12 @@ def set_auth(settings: Settings, url: str, token: str):
 
 def get_control(settings: Settings) -> Control:
     controls = settings.setdefault('controls', {})
-    return controls.setdefault('chaostoolkit-cloud', {})
+    return controls.setdefault('chaosiq-cloud', {})
 
 
 def get_orgs(settings: Settings) -> List[Dict[str, Any]]:
     provider = \
-        settings['controls']['chaostoolkit-cloud'].setdefault('provider', {})
+        settings['controls']['chaosiq-cloud'].setdefault('provider', {})
     args = provider.setdefault('arguments', {})
     return args.setdefault('organizations', [])
 
@@ -155,7 +155,7 @@ def set_default_org(settings: Settings, org: Dict[str, str]):
 
 def verify_tls_certs(settings: Settings) -> bool:
     return settings.get('controls', {}).\
-        get('chaostoolkit-cloud', {}).\
+        get('chaosiq-cloud', {}).\
         get('provider', {}).\
         get('arguments', {}).\
         get('verify_tls', True)

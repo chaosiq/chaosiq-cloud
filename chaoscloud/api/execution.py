@@ -5,6 +5,7 @@ import uuid
 
 from chaoslib.types import Configuration, Experiment, Extension, Journal, \
     Secrets, Settings
+from chaostoolkit import encoder as json_encoder
 from cloudevents.sdk import converters
 from cloudevents.sdk import marshaller
 from cloudevents.sdk.converters import structured
@@ -35,8 +36,12 @@ def initialize_execution(session: Session, experiment: Experiment,
     execution_url = urls.execution(
         urls.experiment(session.base_url, experiment_id=experiment_id))
     try:
-        r = session.post(execution_url, json={
-            "journal": journal
+        data = json.dumps(
+            {
+                "journal": journal
+            }, ensure_ascii=False, default=json_encoder)
+        r = session.post(execution_url, data=data, headers={
+            "content-type": "application/json"
         })
     except Exception:
         logger.debug("Failed to create execution", exc_info=True)
@@ -67,8 +72,12 @@ def publish_execution(session: Session,
         urls.experiment(session.base_url, experiment_id=experiment_id),
         execution_id=execution_id)
     try:
-        r = session.put(execution_url, json={
-            "journal": journal
+        data = json.dumps(
+            {
+                "journal": journal
+            }, ensure_ascii=False, default=json_encoder)
+        r = session.put(execution_url, data=data, headers={
+            "content-type": "application/json"
         })
     except Exception:
         logger.debug("Failed to upload execution", exc_info=True)
@@ -119,7 +128,7 @@ def publish_event(session: Session, event_type: str, payload: Any,
     execution_id = get_execution_id(extensions)
     if not execution_id:
         logger.debug(
-            "Cannot send event to Chaos Toolkit because execution "
+            "Cannot send event to ChaosIQ because execution "
             "identifier was not found in the experiment's extensions block.")
         return
 
@@ -128,12 +137,28 @@ def publish_event(session: Session, event_type: str, payload: Any,
         "context": payload,
         "state": state
     }
+    try:
+        data = json.dumps(data, ensure_ascii=False, default=json_encoder)
+    except Exception as x:
+        logger.debug(
+            "Failed to serialize to json during '{}' event".format(event_type),
+            exc_info=True
+        )
+        data = json.dumps({
+            "context": payload,
+            "state": None,
+            "error": {
+                "type": "json-serialization",
+                "trace": str(x)
+            }
+        }, ensure_ascii=False, default=json_encoder)
+
     event = (
         v02.Event().
         SetContentType("application/json").
-        SetData(json.dumps(data)).
+        SetData(data).
         SetEventID(str(uuid.uuid4())).
-        SetSource("chaostoolkit-cloud").
+        SetSource("chaosiq-cloud").
         SetEventTime(tz.localize(datetime.now()).isoformat()).
         SetEventType(event_type)
     )

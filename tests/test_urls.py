@@ -3,7 +3,7 @@ import uuid
 
 from chaoscloud.api import urls
 
-ENDPOINT = "https://chaostoolkit.com"
+ENDPOINT = "https://chaosiq.io"
 
 
 def test_build_base_url():
@@ -28,9 +28,9 @@ def test_build_executions_url():
     assert urls.execution(base) == "{}/api/v1/executions".format(ENDPOINT)
 
 
-def test_build_policies_url():
+def test_build_safeguards_url():
     base = urls.base(ENDPOINT)
-    assert urls.policy(base) == "{}/api/v1/policies".format(ENDPOINT)
+    assert urls.safeguard(base) == "{}/api/v1/policies".format(ENDPOINT)
 
 
 def test_clean_url_when_api_not_in_path():
@@ -43,7 +43,7 @@ def test_clean_url_when_api_is_in_path():
 
 
 def test_get_host():
-    assert urls.host(ENDPOINT) == "chaostoolkit.com"
+    assert urls.host(ENDPOINT) == "chaosiq.io"
 
 
 def test_get_host_with_port():

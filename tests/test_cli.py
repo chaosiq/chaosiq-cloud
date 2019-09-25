@@ -49,8 +49,8 @@ def test_signin(signin):
             assert auth["type"] == "bearer"
             assert auth["value"] == "XYZ"
 
-            assert "provider" in settings["controls"]["chaostoolkit-cloud"]
-            provider = settings["controls"]["chaostoolkit-cloud"]["provider"]
+            assert "provider" in settings["controls"]["chaosiq-cloud"]
+            provider = settings["controls"]["chaosiq-cloud"]["provider"]
             assert provider["module"] == "chaoscloud.controls"
             assert provider["type"] == "python"
             assert len(provider["arguments"]["organizations"]) == 1
@@ -104,8 +104,8 @@ def test_org(org):
             assert auth["type"] == "bearer"
             assert auth["value"] == "XYZ"
 
-            assert "provider" in settings["controls"]["chaostoolkit-cloud"]
-            provider = settings["controls"]["chaostoolkit-cloud"]["provider"]
+            assert "provider" in settings["controls"]["chaosiq-cloud"]
+            provider = settings["controls"]["chaosiq-cloud"]["provider"]
             assert provider["module"] == "chaoscloud.controls"
             assert provider["type"] == "python"
             assert len(provider["arguments"]["organizations"]) == 1

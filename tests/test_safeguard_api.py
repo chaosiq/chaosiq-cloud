@@ -5,10 +5,10 @@ import pytest
 import requests_mock
 
 from chaoscloud.api import client_session
-from chaoscloud.api.policy import is_allowed_to_continue
+from chaoscloud.api.safeguard import is_allowed_to_continue
 from chaoscloud.api import urls
 
-ENDPOINT = "https://console.chaostoolkit.com"
+ENDPOINT = "https://console.chaosiq.io"
 
 
 def test_no_check_when_execution_is_not_found(organizations, default_org_id):
@@ -17,7 +17,7 @@ def test_no_check_when_execution_is_not_found(organizations, default_org_id):
     with requests_mock.mock() as m:
         url = urls.full(
             urls.base(ENDPOINT), default_org_id, experiment_id,
-            execution_id=execution_id, with_policies=True)
+            execution_id=execution_id, with_safeguards=True)
         m.get(url, status_code=404)
         try:
             with client_session(ENDPOINT, organizations) as s:
@@ -40,7 +40,7 @@ def test_interrupt_experiment(organizations, default_org_id):
     with requests_mock.mock() as m:
         url = urls.full(
             urls.base(ENDPOINT), default_org_id, experiment_id,
-            execution_id=execution_id, with_policies=True)
+            execution_id=execution_id, with_safeguards=True)
         m.get(
             url,
             status_code=200,
