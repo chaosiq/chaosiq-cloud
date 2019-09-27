@@ -13,6 +13,7 @@ from .api.execution import initialize_execution, publish_event, \
     publish_execution
 from .api.safeguard import is_allowed_to_continue
 from .settings import is_feature_enabled
+from .sig import register_cleanup_on_forced_exit
 
 Organizations = List[Dict[str, Any]]
 
@@ -26,6 +27,8 @@ def configure_control(experiment: Experiment, settings: Settings,
     Initialize the execution's journal and publish both the experiment
     and the journal.
     """
+    register_cleanup_on_forced_exit()
+
     if not is_feature_enabled(settings, "publish"):
         logger.warning(
             "\nChaosIQ extension has disabled publishing\n"

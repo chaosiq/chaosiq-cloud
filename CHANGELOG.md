@@ -7,7 +7,7 @@
 ### Changed
 
 - A little more robust to failure to fetch organizations
-
+- Catch SIGTERM to interrupt execution gracefully
 
 ## [0.3.0][] - 2019-09-25
 
