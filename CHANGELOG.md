@@ -4,6 +4,9 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.3.0...HEAD
 
+### Changed
+
+- A little more robust to failure to fetch organizations
 
 
 ## [0.3.0][] - 2019-09-25

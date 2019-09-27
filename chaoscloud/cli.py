@@ -183,6 +183,11 @@ def establish_credentials(settings_path):
             category=InsecureRequestWarning)
 
     default_org = select_organization(url, token, disable_tls_verify)
+    if not default_org:
+        click.secho(
+            "No default organization selected! Aborting configuration.",
+            fg="red")
+        return
 
     set_settings(url, token, disable_tls_verify, default_org, settings)
     save_settings(settings, settings_path)
@@ -195,6 +200,12 @@ def select_organization(url, token, disable_tls_verify) -> str:
     orgs_url = urls.org(urls.base(url))
     while True:
         r = request_orgs(orgs_url, token, disable_tls_verify)
+        if r.status_code in [401, 403]:
+            click.secho(
+                "Provided credentials are not allowed by ChaosIQ. "
+                "Please verify your access token.", fg="red")
+            break
+
         if r.status_code != 200:
             logger.debug(
                 "Failed to fetch your organizations at {}: {}".format(
