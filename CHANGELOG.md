@@ -4,6 +4,10 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.4.0...HEAD
 
+### Changed
+
+- Defaulting to UTC when no local timezone could be found
+
 ## [0.4.0][] - 2019-09-27
 
 [0.4.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.3.0...0.4.0

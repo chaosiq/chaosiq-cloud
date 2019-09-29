@@ -11,6 +11,7 @@ from cloudevents.sdk import marshaller
 from cloudevents.sdk.converters import structured
 from cloudevents.sdk.event import v02
 from logzero import logger
+import pytz
 from requests import Response, Session
 import simplejson as json
 from tzlocal import get_localzone
@@ -132,7 +133,12 @@ def publish_event(session: Session, event_type: str, payload: Any,
             "identifier was not found in the experiment's extensions block.")
         return
 
-    tz = get_localzone()
+    try:
+        tz = get_localzone()
+    except pytz.exceptions.UnknownTimeZoneError:
+        logger.debug("Failed to locate timezone. Defaulting to UTC.")
+        tz = pytz.utc
+
     data = {
         "context": payload,
         "state": state
