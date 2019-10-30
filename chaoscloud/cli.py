@@ -167,39 +167,39 @@ def establish_credentials(settings_path):
         type=str, hide_input=True)
     token = token.strip()
 
-    disable_tls_verify = False
+    verify_tls = True
     try:
         r = verify_ssl_certificate(url, token)
         if r.status_code == 401:
             click.echo("Your token was not accepted by the server.")
             raise click.Abort()
     except requests.exceptions.SSLError:
-        disable_tls_verify = click.confirm(
+        verify_tls = not click.confirm(
             "It looks like the server's TLS certificate cannot be verified. "
             "Do you wish to disable certificate verification for this server?")
 
-    if disable_tls_verify:  # pragma: no cover
+    if not verify_tls:  # pragma: no cover
         requests.packages.urllib3.disable_warnings(
             category=InsecureRequestWarning)
 
-    default_org = select_organization(url, token, disable_tls_verify)
+    default_org = select_organization(url, token, verify_tls)
     if not default_org:
         click.secho(
             "No default organization selected! Aborting configuration.",
             fg="red")
         return
 
-    set_settings(url, token, disable_tls_verify, default_org, settings)
+    set_settings(url, token, verify_tls, default_org, settings)
     save_settings(settings, settings_path)
 
     click.echo("ChaosIQ details saved at {}".format(settings_path))
 
 
-def select_organization(url, token, disable_tls_verify) -> str:
+def select_organization(url: str, token: str, verify_tls: bool = True) -> str:
     default_org = None
     orgs_url = urls.org(urls.base(url))
     while True:
-        r = request_orgs(orgs_url, token, disable_tls_verify)
+        r = request_orgs(orgs_url, token, verify_tls)
         if r.status_code in [401, 403]:
             click.secho(
                 "Provided credentials are not allowed by ChaosIQ. "

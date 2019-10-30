@@ -9,7 +9,7 @@ __all__ = ["set_settings", "get_endpoint_url", "disable_publishing",
            "is_feature_enabled", "get_verify_tls", "get_auth_token"]
 
 
-def set_settings(url: str, token: str, disable_tls_verify: bool,
+def set_settings(url: str, token: str, verify_tls: bool,
                  default_org: Dict[str, str], settings: Settings):
     """
     Set the ChaosIQ Cloud related entries in the Chaos Toolkit settings.
@@ -35,7 +35,7 @@ def set_settings(url: str, token: str, disable_tls_verify: bool,
             'module': 'chaoscloud.controls',
             'arguments': {
                 'url': url,
-                'verify_tls': disable_tls_verify,
+                'verify_tls': verify_tls,
                 'organizations': get_orgs(settings)
             }
         }
