@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 from contextlib import contextmanager
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, Generator, List, NoReturn, Optional
 
-from chaoslib.types import Settings
+from chaoslib.types import Experiment, Extension, Journal, Settings
 from logzero import logger
 from requests import Session
 
 from . import urls
 
-__all__ = ["client_session"]
+__all__ = ["client_session", "get_chaosiq_extension_from_journal",
+           "get_default_org", "get_execution_id", "set_execution_id"]
 
 
 @contextmanager
@@ -52,3 +53,43 @@ def get_default_org(organizations: List[Dict[str, str]]) -> Dict[str, Any]:
     for org in organizations:
         if org.get('default') is True:
             return org
+
+
+def get_chaosiq_extension_from_journal(journal: Journal) -> Dict[str, Any]:
+    extensions = journal.setdefault("extensions", [])
+    for extension in extensions:
+        if extension.get("name") == "chaosiq":
+            break
+    else:
+        extension = {
+            "name": "chaosiq"
+        }
+        extensions.append(extension)
+
+    return extension
+
+
+def get_execution_id(extensions: List[Extension]) -> Optional[str]:
+    if not extensions:
+        return
+
+    for extension in extensions:
+        if extension["name"] == "chaosiq":
+            return extension["execution_id"]
+
+
+def get_experiment_id(extensions: List[Extension]) -> Optional[str]:
+    if not extensions:
+        return
+
+    for extension in extensions:
+        if extension["name"] == "chaosiq":
+            return extension["experiment_id"]
+
+
+def set_execution_id(execution_id: str, experiment: Experiment) -> NoReturn:
+    extensions = experiment.get("extensions", [])
+    for extension in extensions:
+        if extension["name"] == "chaosiq":
+            extension["execution_id"] = execution_id
+            break

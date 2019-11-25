@@ -16,7 +16,8 @@ from requests import Response, Session
 import simplejson as json
 from tzlocal import get_localzone
 
-from . import urls
+from . import urls, get_chaosiq_extension_from_journal, get_experiment_id, \
+    get_execution_id, set_execution_id
 
 __all__ = ["publish_event", "initialize_execution", "publish_execution",
            "fetch_execution"]
@@ -186,25 +187,13 @@ def publish_event(session: Session, event_type: str, payload: Any,
 ###############################################################################
 # Internals
 ###############################################################################
-def get_experiment_id(extensions: List[Extension]) -> Optional[str]:
-    if not extensions:
-        return
-    for extension in extensions:
-        if extension["name"] == "chaosiq":
-            return extension.get("experiment_id")
-
-
-def get_execution_id(extensions: List[Extension]) -> Optional[str]:
-    if not extensions:
-        return
-    for extension in extensions:
-        if extension["name"] == "chaosiq":
-            return extension.get("execution_id")
-
-
-def set_execution_id(execution_id: str, experiment: Experiment) -> NoReturn:
-    extensions = experiment.get("extensions", [])
-    for extension in extensions:
-        if extension["name"] == "chaosiq":
-            extension["execution_id"] = execution_id
-            break
+def save_ids_to_journal(extensions: List[Extension],
+                        journal: Journal) -> NoReturn:
+    """
+    Store the experiment and execution identifiers in the journal.
+    """
+    execution_id = get_execution_id(extensions)
+    experiment_id = get_experiment_id(extensions)
+    extension = get_chaosiq_extension_from_journal(journal)
+    extension["execution_id"] = execution_id
+    extension["experiment_id"] = experiment_id
