@@ -116,6 +116,8 @@ def set_auth(settings: Settings, url: str, token: str):
 
 
 def get_control(settings: Settings) -> Control:
+    if not settings:
+        return
     controls = settings.setdefault('controls', {})
     return controls.setdefault('chaosiq-cloud', {})
 
@@ -163,5 +165,7 @@ def verify_tls_certs(settings: Settings) -> bool:
 
 def is_feature_enabled(settings: Settings, feature: str) -> bool:
     control = get_control(settings)
+    if not control:
+        return False
     features = control.get("features", {})
     return features.get(feature) != "off"

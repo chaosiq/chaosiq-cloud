@@ -5,7 +5,8 @@ import pytest
 import requests_mock
 
 from chaoscloud.api import client_session
-from chaoscloud.api.safeguard import is_allowed_to_continue
+from chaoscloud.api.safeguard import is_allowed_to_continue, \
+    set_applied_safeguards_for_execution
 from chaoscloud.api import urls
 
 ENDPOINT = "https://console.chaosiq.io"
@@ -61,3 +62,38 @@ def test_interrupt_experiment(organizations, default_org_id):
                         "experiment_id": experiment_id
                     }
                 ])
+
+
+def test_store_safeguards_to_journal(organizations, default_org_id):
+    execution_id = str(uuid.uuid4())
+    experiment_id = str(uuid.uuid4())
+    safeguards = [
+        {
+            "name": "godzilla says stop"
+        }
+    ]
+    with requests_mock.mock() as m:
+        url = urls.full(
+            urls.base(ENDPOINT), default_org_id, experiment_id,
+            execution_id=execution_id, with_safeguards=True)
+        m.get(
+            url,
+            status_code=200,
+            json={
+                "allowed": False,
+                "policies": safeguards
+            })
+
+        extensions = [
+            {
+                "name": "chaosiq",
+                "execution_id": execution_id,
+                "experiment_id": experiment_id
+            }
+        ]
+        journal = {}
+        with client_session(ENDPOINT, organizations) as s:
+            with pytest.raises(InterruptExecution):
+                is_allowed_to_continue(s, extensions)
+            set_applied_safeguards_for_execution(extensions, journal)
+            assert journal["extensions"][0]["safeguards"] == safeguards

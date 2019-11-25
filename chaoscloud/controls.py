@@ -10,8 +10,9 @@ from logzero import logger
 from .api import client_session
 from .api.experiment import publish_experiment
 from .api.execution import initialize_execution, publish_event, \
-    publish_execution
-from .api.safeguard import is_allowed_to_continue
+    publish_execution, save_ids_to_journal
+from .api.safeguard import is_allowed_to_continue, \
+    set_applied_safeguards_for_execution
 from .settings import is_feature_enabled
 from .sig import register_cleanup_on_forced_exit
 
@@ -115,13 +116,13 @@ def after_experiment_control(context: Experiment,
     if not is_feature_enabled(settings, "publish"):
         return
 
+    save_ids_to_journal(extensions, state)
+    set_applied_safeguards_for_execution(extensions, state)
     with client_session(url, organizations, verify_tls, settings) as session:
         publish_event(
             session, "experiment-finished", context, configuration, secrets,
             extensions, settings, state)
         publish_execution(session, state)
-        if is_feature_enabled(settings, "safeguards"):
-            is_allowed_to_continue(session, extensions)
 
 
 def before_hypothesis_control(context: Hypothesis,
@@ -140,6 +141,7 @@ def before_hypothesis_control(context: Hypothesis,
         publish_event(
             session, "starting-hypothesis", context, configuration, secrets,
             extensions, settings)
+
         if is_feature_enabled(settings, "safeguards"):
             is_allowed_to_continue(session, extensions)
 

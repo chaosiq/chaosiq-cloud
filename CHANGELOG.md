@@ -4,6 +4,15 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.4.1...HEAD
 
+### Added
+
+- Store the experiment and execution identifiers in the journal as an extension
+  named `"chaosiq"` so that they can used later on.
+- Store the safeguards that interrupted an execution into the `"chaosiq"`
+  extension of the journal [#22][22]
+
+[22]: https://github.com/chaosiq/chaosiq-cloud/issues/22
+
 ## [0.4.1][] - 2019-09-29
 
 [0.4.1]: https://github.com/chaosiq/chaosiq-cloud/compare/0.4.0...0.4.1
