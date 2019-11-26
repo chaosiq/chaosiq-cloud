@@ -7,7 +7,7 @@ import simplejson as json
 from chaoscloud.api import client_session
 from chaoscloud.api import urls
 from chaoscloud.api.execution import initialize_execution, publish_execution, \
-    fetch_execution, publish_event, initialize_execution
+    fetch_execution, publish_event
 
 
 ENDPOINT = "https://console.chaosiq.io"
