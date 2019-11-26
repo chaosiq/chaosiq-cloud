@@ -10,6 +10,7 @@
   named `"chaosiq"` so that they can used later on.
 - Store the safeguards that interrupted an execution into the `"chaosiq"`
   extension of the journal [#22][22]
+- More graceful bail when certificate verification fails
 
 [22]: https://github.com/chaosiq/chaosiq-cloud/issues/22
 

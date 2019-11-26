@@ -200,6 +200,12 @@ def select_organization(url: str, token: str, verify_tls: bool = True) -> str:
     orgs_url = urls.org(urls.base(url))
     while True:
         r = request_orgs(orgs_url, token, verify_tls)
+        if r is None:
+            click.secho(
+                "Failed to retrieve organizations from the ChaosIQ services.",
+                fg="red")
+            break
+
         if r.status_code in [401, 403]:
             click.secho(
                 "Provided credentials are not allowed by ChaosIQ. "
