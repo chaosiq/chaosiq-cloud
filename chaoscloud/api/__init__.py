@@ -75,7 +75,7 @@ def get_execution_id(extensions: List[Extension]) -> Optional[str]:
 
     for extension in extensions:
         if extension["name"] == "chaosiq":
-            return extension["execution_id"]
+            return extension.get("execution_id")
 
 
 def get_experiment_id(extensions: List[Extension]) -> Optional[str]:
@@ -84,7 +84,7 @@ def get_experiment_id(extensions: List[Extension]) -> Optional[str]:
 
     for extension in extensions:
         if extension["name"] == "chaosiq":
-            return extension["experiment_id"]
+            return extension.get("experiment_id")
 
 
 def set_execution_id(execution_id: str, experiment: Experiment) -> NoReturn:

@@ -7,7 +7,7 @@ import simplejson as json
 from chaoscloud.api import client_session
 from chaoscloud.api import urls
 from chaoscloud.api.execution import initialize_execution, publish_execution, \
-    fetch_execution, publish_event
+    fetch_execution, publish_event, initialize_execution
 
 
 ENDPOINT = "https://console.chaosiq.io"
@@ -323,3 +323,7 @@ def test_cannot_publish_event_non_published_execution(organizations,
                 s, "start-experiment", activity, None, None, extensions, None,
                 run)
             assert m.call_count == 0
+
+
+def test_initialize_execution_requires_experiment_id():
+    assert initialize_execution(None, {}, {}) is None

@@ -97,3 +97,11 @@ def test_store_safeguards_to_journal(organizations, default_org_id):
                 is_allowed_to_continue(s, extensions)
             set_applied_safeguards_for_execution(extensions, journal)
             assert journal["extensions"][0]["safeguards"] == safeguards
+
+
+def test_continue_when_experiment_id_not_in_experiment():
+    assert is_allowed_to_continue(None, []) is None
+
+
+def test_continue_when_execution_id_not_in_experiment():
+    assert is_allowed_to_continue(None, []) is None

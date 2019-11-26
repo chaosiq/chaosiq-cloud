@@ -3,9 +3,8 @@ import uuid
 import requests
 import requests_mock
 
-from chaoscloud.api import client_session
+from chaoscloud.api import client_session, urls
 from chaoscloud.api.experiment import publish_experiment
-from chaoscloud.api import urls
 
 ENDPOINT = "https://chaosiq.io"
 
