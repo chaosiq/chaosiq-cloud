@@ -13,11 +13,13 @@ def test_signin(signin):
     url = 'https://console.chaos-awesome-toolkit.com'
     token = 'XYZ'
     selected_org_index = '2'
+    selected_team_index = '1'
 
     inputs = '\n'.join([
         url,
         token,
-        selected_org_index
+        selected_org_index,
+        selected_team_index
     ])
 
     with requests_mock.mock() as m:
@@ -30,6 +32,17 @@ def test_signin(signin):
             {
                 "id": "tyu",
                 "name": "otherorg"
+            }
+        ])
+
+        m.get("{}/api/v1/organizations/tyu/teams".format(url), json=[
+            {
+                "id": "123",
+                "name": "myteam"
+            },
+            {
+                "id": "456",
+                "name": "otherteam"
             }
         ])
 
@@ -59,6 +72,11 @@ def test_signin(signin):
             assert org["default"] is True
             assert org["id"] == "tyu"
             assert org["name"] == "otherorg"
+            assert org["teams"] == [{
+                "id": "123",
+                "name": "myteam",
+                "default": True
+            }]
 
 
 @patch('chaoscloud.cli.org', spec=True)
@@ -79,14 +97,27 @@ def test_org(org):
             }
         ])
 
+        m.get("{}/api/v1/organizations/tyu/teams".format(url), json=[
+            {
+                "id": "123",
+                "name": "myteam"
+            },
+            {
+                "id": "456",
+                "name": "otherteam"
+            }
+        ])
+
         runner = CliRunner()
         with NamedTemporaryFile(suffix="yaml") as settings_file:
 
             use_org_selected_org_index = '2'
+            selected_team_index = '1'
             use_org_inputs = '\n'.join([
                 url,
                 token,
-                use_org_selected_org_index
+                use_org_selected_org_index,
+                selected_team_index
             ])
 
             result = runner.invoke(
@@ -113,3 +144,8 @@ def test_org(org):
             orgs = provider["arguments"]["organizations"][0]
             assert orgs["id"] == "tyu"
             assert orgs["name"] == "otherorg"
+            assert orgs["teams"] == [{
+                "id": "123",
+                "name": "myteam",
+                "default": True
+            }]

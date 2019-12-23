@@ -4,6 +4,12 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.5.0...HEAD
 
+### Changed
+
+- Adapted to use the organization/team schema of the remote API [#27][27]
+
+[27]: https://github.com/chaosiq/chaosiq-cloud/issues/27
+
 ## [0.5.0][] - 2019-11-26
 
 [0.5.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.4.1...0.5.0

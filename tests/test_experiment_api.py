@@ -10,12 +10,14 @@ ENDPOINT = "https://chaosiq.io"
 
 
 def test_experiment_not_created_when_invalid_type(organizations,
-                                                  default_org_id):
+                                                  default_org_id,
+                                                  default_team_id):
     # the remote endpoint cannot deal with anything but a experiment
     experiment = []
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, with_experiments=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            with_experiments=True)
         m.post(
             url, status_code=422, json=[
                 {
@@ -34,13 +36,15 @@ def test_experiment_not_created_when_invalid_type(organizations,
             assert experiment == []
 
 
-def test_experiment_not_created_when_unmodified(organizations, default_org_id):
+def test_experiment_not_created_when_unmodified(
+        organizations, default_org_id, default_team_id):
     experiment = {
         "title": "hello"
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, with_experiments=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            with_experiments=True)
         m.post(
             url, status_code=204
         )
@@ -49,14 +53,15 @@ def test_experiment_not_created_when_unmodified(organizations, default_org_id):
             assert r.status_code == 204
 
 
-def test_create_experiment(organizations, default_org_id):
+def test_create_experiment(organizations, default_org_id, default_team_id):
     x_id = str(uuid.uuid4())
     experiment = {
         "title": "hello"
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, with_experiments=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            with_experiments=True)
         m.post(
             url, status_code=201,
             json={
@@ -74,13 +79,15 @@ def test_create_experiment(organizations, default_org_id):
 
 
 def test_cannot_create_experiment_on_requests_connection_timeout(
-                                                organizations, default_org_id):
+                                                organizations, default_org_id,
+                                                default_team_id):
     experiment = {
         "title": "hello"
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, with_experiments=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            with_experiments=True)
         m.post(
             url, exc=requests.exceptions.ConnectTimeout
         )

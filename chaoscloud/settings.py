@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
@@ -10,7 +11,8 @@ __all__ = ["set_settings", "get_endpoint_url", "disable_publishing",
 
 
 def set_settings(url: str, token: str, verify_tls: bool,
-                 default_org: Dict[str, str], settings: Settings):
+                 default_org: Dict[str, str], default_team: Dict[str, str],
+                 settings: Settings):
     """
     Set the ChaosIQ Cloud related entries in the Chaos Toolkit settings.
 
@@ -23,6 +25,8 @@ def set_settings(url: str, token: str, verify_tls: bool,
     """
     set_auth(settings, url, token)
     control = get_control(settings)
+    default_org = deepcopy(default_org)
+    set_default_team(default_org, default_team)
     set_default_org(settings, default_org)
 
     control.update({
@@ -136,6 +140,17 @@ def get_default_org(settings: Settings) -> Optional[Dict[str, Any]]:
             return org
 
 
+def get_teams(org: Dict[str, str]) -> List[Dict[str, Any]]:
+    return org.setdefault('teams', [])
+
+
+def get_default_team(org: Dict[str, str]) -> Optional[Dict[str, Any]]:
+    teams = get_teams(org)
+    for team in teams:
+        if team['default']:
+            return team
+
+
 def set_default_org(settings: Settings, org: Dict[str, str]):
     orgs = get_orgs(settings)
     current_default_org = get_default_org(settings)
@@ -146,11 +161,32 @@ def set_default_org(settings: Settings, org: Dict[str, str]):
         if o['id'] == org['id']:
             o['default'] = True
             o['name'] = org['name']
+            o['teams'] = org["teams"]
             break
     else:
         orgs.append({
             'id': org["id"],
             'name': org["name"],
+            'default': True,
+            'teams': org["teams"]
+        })
+
+
+def set_default_team(org: Dict[str, str], team: Dict[str, str]):
+    teams = get_teams(org)
+    current_default_team = get_default_team(org)
+    if current_default_team:
+        current_default_team['default'] = False
+
+    for t in teams:
+        if t['id'] == team['id']:
+            t['default'] = True
+            t['name'] = team['name']
+            break
+    else:
+        teams.append({
+            'id': team["id"],
+            'name': team["name"],
             'default': True
         })
 

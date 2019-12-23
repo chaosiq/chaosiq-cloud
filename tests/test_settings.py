@@ -2,11 +2,11 @@
 from chaoscloud.settings import get_endpoint_url, set_settings
 
 
-def test_adding_new_chaosiq_settings(default_org):
+def test_adding_new_chaosiq_settings(default_org, default_team):
     settings = {}
     hub_url = "https://myhub.com:9090/"
     token = "mytoken"
-    set_settings(hub_url, token, False, default_org, settings)
+    set_settings(hub_url, token, False, default_org, default_team, settings)
     assert 'auths' in settings
     assert 'myhub.com:9090' in settings['auths']
     assert settings['auths']['myhub.com:9090']['type'] == 'bearer'
@@ -30,7 +30,7 @@ def test_adding_new_chaosiq_settings(default_org):
     assert args['verify_tls'] is False
 
 
-def test_updating_existing_chaosiq_settings(default_org):
+def test_updating_existing_chaosiq_settings(default_org, default_team):
     hub_url = "https://myotherhub.com:9080/"
     token = "mytoken"
     settings = {
@@ -47,7 +47,8 @@ def test_updating_existing_chaosiq_settings(default_org):
             }
         }
     }
-    set_settings(hub_url, token, True, default_org, settings=settings)
+    set_settings(
+        hub_url, token, True, default_org, default_team, settings=settings)
     assert 'auths' in settings
     assert 'myotherhub.com:9080' in settings['auths']
     assert settings['auths']['myotherhub.com:9080']['type'] == 'bearer'
@@ -71,7 +72,7 @@ def test_updating_existing_chaosiq_settings(default_org):
     assert args['verify_tls'] is True
 
 
-def test_update_auth_token(default_org):
+def test_update_auth_token(default_org, default_team):
     hub_url = "https://myotherhub.com:9080/"
     token = "mytoken"
     settings = {
@@ -94,7 +95,8 @@ def test_update_auth_token(default_org):
             }
         }
     }
-    set_settings(hub_url, token, False, default_org, settings=settings)
+    set_settings(
+        hub_url, token, False, default_org, default_team, settings=settings)
     assert 'auths' in settings
     assert 'myotherhub.com:9080' in settings['auths']
     assert settings['auths']['myotherhub.com:9080']['type'] == 'bearer'

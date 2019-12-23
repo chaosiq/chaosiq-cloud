@@ -8,6 +8,7 @@ import click
 from logzero import logger
 import requests
 import simplejson as json
+from typing import Any, Dict
 from urllib3.exceptions import InsecureRequestWarning
 
 from . import __version__
@@ -16,12 +17,14 @@ from .api.experiment import publish_experiment
 from .api.execution import initialize_execution, fetch_execution
 from .api.organization import request_orgs
 from .api.ssl import verify_ssl_certificate
+from .api.team import request_teams
 from .api import urls
 from .settings import set_settings, get_endpoint_url, get_orgs, \
     verify_tls_certs, enable_safeguards, enable_publishing, \
-    disable_safeguards, disable_publishing, get_verify_tls, get_auth_token
+    disable_safeguards, disable_publishing, get_verify_tls, get_auth_token, \
+    get_default_org
 
-__all__ = ["signin", "publish", "org", "enable", "disable"]
+__all__ = ["signin", "publish", "org", "enable", "disable", "team"]
 
 
 @click.group()
@@ -48,7 +51,7 @@ def signin(ctx: click.Context):
 @click.pass_context
 def org(ctx: click.Context):
     """
-    List and select a new ChaosIQ organization to use.
+    List and select a new ChaosIQ organization and team to use.
 
     \b
     In order to benefit from these features, you must have registered with
@@ -68,8 +71,48 @@ def org(ctx: click.Context):
         establish_credentials(settings_path)
     else:
         default_org = select_organization(url, token, disable_tls_verify)
+        click.echo("Using organization '{}'".format(
+            click.style(default_org["name"], fg="blue")))
+        default_team = select_team(url, token, default_org, disable_tls_verify)
 
-        set_settings(url, token, disable_tls_verify, default_org, settings)
+        set_settings(
+            url, token, disable_tls_verify, default_org, default_team,
+            settings)
+        save_settings(settings, settings_path)
+
+        click.echo("ChaosIQ details saved at {}".format(
+            settings_path))
+
+
+@cli.command(help="Set ChaosIQ team")
+@click.pass_context
+def team(ctx: click.Context):
+    """
+    List and select a new ChaosIQ team to use within the default organization.
+
+    \b
+    In order to benefit from these features, you must have registered with
+    ChaosIQ and retrieved an access token. You should set that
+    token in the configuration file with `chaos signin`.
+    """
+    settings_path = ctx.obj["settings_path"]
+    settings = load_settings(settings_path) or {}
+
+    url = get_endpoint_url(
+        settings, "https://console.chaosiq.io")
+
+    token = get_auth_token(settings, url)
+    disable_tls_verify = get_verify_tls(settings)
+
+    if not token:
+        establish_credentials(settings_path)
+    else:
+        default_org = get_default_org(settings)
+        default_team = select_team(url, token, default_org, disable_tls_verify)
+
+        set_settings(
+            url, token, disable_tls_verify, default_org, default_team,
+            settings)
         save_settings(settings, settings_path)
 
         click.echo("ChaosIQ details saved at {}".format(
@@ -189,13 +232,23 @@ def establish_credentials(settings_path):
             fg="red")
         return
 
-    set_settings(url, token, verify_tls, default_org, settings)
+    default_team = select_team(url, token, default_org, verify_tls)
+    if not default_team:
+        click.secho(
+            "No default team selected! Aborting configuration.",
+            fg="red")
+        return
+
+    set_settings(url, token, verify_tls, default_org, default_team, settings)
     save_settings(settings, settings_path)
 
     click.echo("ChaosIQ details saved at {}".format(settings_path))
 
 
 def select_organization(url: str, token: str, verify_tls: bool = True) -> str:
+    """
+    Select the organization to use as workspace.
+    """
     default_org = None
     orgs_url = urls.org(urls.base(url))
     while True:
@@ -231,7 +284,7 @@ def select_organization(url: str, token: str, verify_tls: bool = True) -> str:
                 orgs)]))
 
         org_index = click.prompt(click.style(
-            "Default organization to publish to", fg='green'), type=int)
+            "Default organization to use", fg='green'), type=int)
         org_index = org_index - 1
         if -1 < org_index < len(orgs):
             org = orgs[org_index]
@@ -239,10 +292,74 @@ def select_organization(url: str, token: str, verify_tls: bool = True) -> str:
             break
         click.echo("Select a default organization to publish to")
 
-    if default_org:
+    return default_org
+
+
+def select_team(url: str, token: str, org: Dict[str, Any],
+                verify_tls: bool = True) -> str:
+    """
+    Select the  team to publish experiments and executions to. Teams are
+    selected as part oif the selected organization and only the ones the
+    user, identified by the token, is member of.
+    """
+    default_team = None
+    teams_url = urls.team(urls.org(urls.base(url), organization_id=org["id"]))
+    while True:
+        r = request_teams(teams_url, token, verify_tls)
+        if r is None:
+            click.secho(
+                "Failed to retrieve teams, in organization '{}', from "
+                "the ChaosIQ services.".format(org["name"]),
+                fg="red")
+            break
+
+        if r.status_code in [401, 403]:
+            click.secho(
+                "Provided credentials are not allowed by ChaosIQ. "
+                "Please verify your access token.", fg="red")
+            break
+
+        if r.status_code != 200:
+            logger.debug(
+                "Failed to fetch your teams at {}: {}".format(
+                    teams_url, r.text))
+            click.echo(
+                click.style("Failed to fetch your teams", fg="yellow"))
+            break
+
+        teams = r.json()
+        if not teams:
+            click.echo(
+                click.style(
+                    "You must be part of at least a team in organization '{}' "
+                    "to publish to it.".format(org["name"]), fg="red"))
+            break
+
+        if len(teams) == 1:
+            default_team = teams[0]
+            break
+        click.echo(
+            "Here are the teams you belong to in organization '{}':".format(
+                click.style(org["name"], fg="blue")))
+        teams = [(t['id'], t['name']) for t in teams]
+        click.echo(
+            "\n".join(["{}) {}".format(i+1, t[1]) for (i, t) in enumerate(
+                teams)]))
+
+        team_index = click.prompt(click.style(
+            "Default team to publish to", fg='green'), type=int)
+        team_index = team_index - 1
+        if -1 < team_index < len(teams):
+            team = teams[team_index]
+            default_team = {"name": team[1], "id": team[0]}
+            break
+        click.echo(click.style("Please, select a valid team.", fg="yellow"))
+
+    if default_team:
         click.echo(
             "Experiments and executions will be published to "
-            "organization '{}'".format(
-                click.style(default_org['name'], fg='blue')))
+            "team '{}' in organization '{}'".format(
+                click.style(default_team['name'], fg='blue'),
+                click.style(org['name'], fg='blue')))
 
-    return default_org
+    return default_team

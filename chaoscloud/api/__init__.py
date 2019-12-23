@@ -21,7 +21,9 @@ def client_session(url: str, organizations: List[Dict[str, str]],
     request made with this session.
     """
     org = get_default_org(organizations)
+    team = get_default_team(org)
     org_id = org["id"]
+    team_id = team["id"]
     host = urls.host(url)
     headers = {
         "Accept": "application/json",
@@ -43,7 +45,8 @@ def client_session(url: str, organizations: List[Dict[str, str]],
                 auth_type.capitalize(), token)
 
     with Session() as s:
-        s.base_url = urls.org(urls.base(url), organization_id=org_id)
+        s.base_url = urls.team(
+            urls.org(urls.base(url), organization_id=org_id), team_id=team_id)
         s.headers.update(headers)
         s.verify = verify_tls
         yield s
@@ -53,6 +56,12 @@ def get_default_org(organizations: List[Dict[str, str]]) -> Dict[str, Any]:
     for org in organizations:
         if org.get('default') is True:
             return org
+
+
+def get_default_team(organization: Dict[str, str]) -> Dict[str, Any]:
+    for team in organization.get("teams", []):
+        if team.get('default') is True:
+            return team
 
 
 def get_chaosiq_extension_from_journal(journal: Journal) -> Dict[str, Any]:

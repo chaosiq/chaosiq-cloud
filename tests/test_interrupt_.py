@@ -15,7 +15,6 @@ def test_raises_interrupt_on_sigterm():
     pid = os.getpid()
 
     def send_sigterm():
-        print("boom")
         time.sleep(1)
         os.kill(pid, signal.SIGTERM)
 

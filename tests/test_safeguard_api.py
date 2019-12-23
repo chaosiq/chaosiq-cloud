@@ -12,13 +12,14 @@ from chaoscloud.api import urls
 ENDPOINT = "https://console.chaosiq.io"
 
 
-def test_no_check_when_execution_is_not_found(organizations, default_org_id):
+def test_no_check_when_execution_is_not_found(
+        organizations, default_org_id, default_team_id):
     execution_id = str(uuid.uuid4())
     experiment_id = str(uuid.uuid4())
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            execution_id=execution_id, with_safeguards=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, execution_id=execution_id, with_safeguards=True)
         m.get(url, status_code=404)
         try:
             with client_session(ENDPOINT, organizations) as s:
@@ -35,13 +36,13 @@ def test_no_check_when_execution_is_not_found(organizations, default_org_id):
                 "lead to execution interruption")
 
 
-def test_interrupt_experiment(organizations, default_org_id):
+def test_interrupt_experiment(organizations, default_org_id, default_team_id):
     execution_id = str(uuid.uuid4())
     experiment_id = str(uuid.uuid4())
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            execution_id=execution_id, with_safeguards=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, execution_id=execution_id, with_safeguards=True)
         m.get(
             url,
             status_code=200,
@@ -64,7 +65,8 @@ def test_interrupt_experiment(organizations, default_org_id):
                 ])
 
 
-def test_store_safeguards_to_journal(organizations, default_org_id):
+def test_store_safeguards_to_journal(
+        organizations, default_org_id, default_team_id):
     execution_id = str(uuid.uuid4())
     experiment_id = str(uuid.uuid4())
     safeguards = [
@@ -74,8 +76,8 @@ def test_store_safeguards_to_journal(organizations, default_org_id):
     ]
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            execution_id=execution_id, with_safeguards=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, execution_id=execution_id, with_safeguards=True)
         m.get(
             url,
             status_code=200,

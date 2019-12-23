@@ -14,7 +14,8 @@ ENDPOINT = "https://console.chaosiq.io"
 
 
 def test_execution_not_created_when_experiment_is_invalid_type(
-                                                organizations, default_org_id):
+                                                organizations, default_org_id,
+                                                default_team_id):
     experiment_id = str(uuid.uuid4())
     # the remote endpoint cannot deal with anything but a experiment
     experiment = {
@@ -27,8 +28,8 @@ def test_execution_not_created_when_experiment_is_invalid_type(
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            with_executions=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, with_executions=True)
         m.post(
             url, status_code=422, json=[
                 {
@@ -46,7 +47,7 @@ def test_execution_not_created_when_experiment_is_invalid_type(
             assert r.status_code == 422
 
 
-def test_create_execution(organizations, default_org_id):
+def test_create_execution(organizations, default_org_id, default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     experiment = {
@@ -60,8 +61,8 @@ def test_create_execution(organizations, default_org_id):
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            with_executions=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, with_executions=True)
         m.post(
             url, status_code=201,
             json={
@@ -80,7 +81,8 @@ def test_create_execution(organizations, default_org_id):
 
 
 def test_cannot_create_execution_on_requests_connection_timeout(
-                                                organizations, default_org_id):
+                                                organizations, default_org_id,
+                                                default_team_id):
     experiment_id = str(uuid.uuid4())
     experiment = {
         "title": "Hello there",
@@ -93,8 +95,8 @@ def test_cannot_create_execution_on_requests_connection_timeout(
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            with_executions=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, with_executions=True)
         m.post(
             url,
             exc=requests.exceptions.ConnectTimeout
@@ -105,7 +107,8 @@ def test_cannot_create_execution_on_requests_connection_timeout(
 
 
 def test_cannot_create_execution_from_unknown_experiment_id(
-                                                organizations, default_org_id):
+                                                organizations, default_org_id,
+                                                default_team_id):
     experiment_id = str(uuid.uuid4())
     experiment = {
         "title": "Hello there",
@@ -118,8 +121,8 @@ def test_cannot_create_execution_from_unknown_experiment_id(
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id,
-            with_executions=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, with_executions=True)
         m.post(
             url, status_code=422,
             json=[],
@@ -134,7 +137,62 @@ def test_cannot_create_execution_from_unknown_experiment_id(
 
 
 def test_cannot_update_execution_with_invalid_execution_id(organizations,
-                                                           default_org_id):
+                                                           default_org_id,
+                                                           default_team_id):
+    experiment_id = str(uuid.uuid4())
+    x_id = str(uuid.uuid4())
+    journal = {
+        "experiment": {
+            "extensions": [
+                {
+                    "name": "chaosiq",
+                    "execution_id": x_id,
+                    "experiment_id": experiment_id
+                }
+            ]
+        }
+    }
+    with requests_mock.mock() as m:
+        url = urls.full(
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, execution_id=x_id)
+        m.put(
+            url, status_code=404,
+            headers={
+                "content-type": "text/plain"
+            }
+        )
+        with client_session(ENDPOINT, organizations) as s:
+            r = publish_execution(s, journal)
+            assert r.status_code == 404
+
+
+def test_update_execution(organizations, default_org_id, default_team_id):
+    experiment_id = str(uuid.uuid4())
+    x_id = str(uuid.uuid4())
+    journal = {
+        "experiment": {
+            "extensions": [
+                {
+                    "name": "chaosiq",
+                    "execution_id": x_id,
+                    "experiment_id": experiment_id
+                }
+            ]
+        }
+    }
+    with requests_mock.mock() as m:
+        url = urls.full(
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, x_id)
+        m.put(url, status_code=204)
+        with client_session(ENDPOINT, organizations) as s:
+            r = publish_execution(s, journal)
+            assert r.status_code == 204
+
+
+def test_cannot_update_execution_on_request_connection_timeout(
+        organizations, default_org_id, default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -151,66 +209,14 @@ def test_cannot_update_execution_with_invalid_execution_id(organizations,
     with requests_mock.mock() as m:
         url = urls.full(
             urls.base(ENDPOINT), default_org_id, experiment_id,
-            execution_id=x_id)
-        m.put(
-            url, status_code=404,
-            headers={
-                "content-type": "text/plain"
-            }
-        )
-        with client_session(ENDPOINT, organizations) as s:
-            r = publish_execution(s, journal)
-            assert r.status_code == 404
-
-
-def test_update_execution(organizations, default_org_id):
-    experiment_id = str(uuid.uuid4())
-    x_id = str(uuid.uuid4())
-    journal = {
-        "experiment": {
-            "extensions": [
-                {
-                    "name": "chaosiq",
-                    "execution_id": x_id,
-                    "experiment_id": experiment_id
-                }
-            ]
-        }
-    }
-    with requests_mock.mock() as m:
-        url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id)
-        m.put(url, status_code=204)
-        with client_session(ENDPOINT, organizations) as s:
-            r = publish_execution(s, journal)
-            assert r.status_code == 204
-
-
-def test_cannot_update_execution_on_request_connection_timeout(organizations,
-                                                               default_org_id):
-    experiment_id = str(uuid.uuid4())
-    x_id = str(uuid.uuid4())
-    journal = {
-        "experiment": {
-            "extensions": [
-                {
-                    "name": "chaosiq",
-                    "execution_id": x_id,
-                    "experiment_id": experiment_id
-                }
-            ]
-        }
-    }
-    with requests_mock.mock() as m:
-        url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id)
+            default_team_id, x_id)
         m.put(url, exc=requests.exceptions.ConnectTimeout)
         with client_session(ENDPOINT, organizations) as s:
             r = publish_execution(s, journal)
             assert r is None
 
 
-def test_fetch_execution(organizations, default_org_id):
+def test_fetch_execution(organizations, default_org_id, default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -226,7 +232,8 @@ def test_fetch_execution(organizations, default_org_id):
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, x_id)
         m.get(url, json=journal)
         with client_session(ENDPOINT, organizations) as s:
             r = fetch_execution(s, journal)
@@ -234,7 +241,8 @@ def test_fetch_execution(organizations, default_org_id):
 
 
 def test_cannot_fetch_execution_on_request_connection_timeout(organizations,
-                                                              default_org_id):
+                                                              default_org_id,
+                                                              default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -250,7 +258,8 @@ def test_cannot_fetch_execution_on_request_connection_timeout(organizations,
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id)
+            urls.base(ENDPOINT), default_org_id, experiment_id,
+            default_team_id, x_id)
         m.get(url, exc=requests.exceptions.ConnectTimeout)
         with client_session(ENDPOINT, organizations) as s:
             r = fetch_execution(s, journal)
@@ -258,7 +267,8 @@ def test_cannot_fetch_execution_on_request_connection_timeout(organizations,
 
 
 def test_cannot_fetch_execution_non_published_experiment(organizations,
-                                                         default_org_id):
+                                                         default_org_id,
+                                                         default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     journal = {
@@ -266,7 +276,8 @@ def test_cannot_fetch_execution_non_published_experiment(organizations,
     }
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id)
+            urls.base(ENDPOINT), default_org_id, experiment_id,
+            default_team_id, x_id)
         m.get(url, exc=requests.exceptions.ConnectTimeout)
         with client_session(ENDPOINT, organizations) as s:
             r = fetch_execution(s, journal)
@@ -274,7 +285,7 @@ def test_cannot_fetch_execution_non_published_experiment(organizations,
             assert m.call_count == 0
 
 
-def test_publish_event(organizations, default_org_id):
+def test_publish_event(organizations, default_org_id, default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     extensions = [
@@ -288,8 +299,8 @@ def test_publish_event(organizations, default_org_id):
     run = {}
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id,
-            with_events=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            experiment_id, x_id, with_events=True)
         m.post(url, status_code=201)
         with client_session(ENDPOINT, organizations) as s:
             publish_event(
@@ -307,7 +318,8 @@ def test_publish_event(organizations, default_org_id):
 
 
 def test_cannot_publish_event_non_published_execution(organizations,
-                                                      default_org_id):
+                                                      default_org_id,
+                                                      default_team_id):
     experiment_id = str(uuid.uuid4())
     x_id = str(uuid.uuid4())
     extensions = []
@@ -315,8 +327,8 @@ def test_cannot_publish_event_non_published_execution(organizations,
     run = {}
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, experiment_id, x_id,
-            with_events=True)
+            urls.base(ENDPOINT), default_org_id, experiment_id,
+            default_team_id, x_id, with_events=True)
         m.post(url, status_code=201)
         with client_session(ENDPOINT, organizations) as s:
             publish_event(
