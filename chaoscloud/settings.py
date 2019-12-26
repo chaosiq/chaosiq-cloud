@@ -5,9 +5,12 @@ from urllib.parse import urlparse
 
 from chaoslib.types import Control, Settings
 
-__all__ = ["set_settings", "get_endpoint_url", "disable_publishing",
-           "enable_publishing", "disable_safeguards", "enable_safeguards",
-           "is_feature_enabled", "get_verify_tls", "get_auth_token"]
+__all__ = ["set_settings", "get_endpoint_url",
+           "is_feature_enabled", "get_verify_tls", "get_auth_token",
+           "enable_feature", "disable_feature", "FEATURES"]
+
+
+FEATURES = ['publish', 'safeguards', 'workspace']
 
 
 def set_settings(url: str, token: str, verify_tls: bool,
@@ -30,7 +33,7 @@ def set_settings(url: str, token: str, verify_tls: bool,
     set_default_org(settings, default_org)
 
     features = control.setdefault('features', {})
-    for feature in ['publish', 'safeguards']:
+    for feature in FEATURES:
         features.setdefault(feature, 'on')
 
     control.update({
@@ -46,24 +49,26 @@ def set_settings(url: str, token: str, verify_tls: bool,
     })
 
 
-def disable_publishing(settings: Settings):
+def disable_feature(settings: Settings, feature: str):
+    if feature not in FEATURES:
+        return
+
     control = get_control(settings)
-    control.setdefault('features', {})['publish'] = "off"
+    if not control:
+        return
+
+    control.setdefault('features', {})[feature] = "off"
 
 
-def enable_publishing(settings: Settings):
+def enable_feature(settings: Settings, feature: str):
+    if feature not in FEATURES:
+        return
+
     control = get_control(settings)
-    control.setdefault('features', {})['publish'] = "on"
+    if not control:
+        return
 
-
-def disable_safeguards(settings: Settings):
-    control = get_control(settings)
-    control.setdefault('features', {})['safeguards'] = "off"
-
-
-def enable_safeguards(settings: Settings):
-    control = get_control(settings)
-    control.setdefault('features', {})['safeguards'] = "on"
+    control.setdefault('features', {})[feature] = "on"
 
 
 def get_endpoint_url(settings: Settings,

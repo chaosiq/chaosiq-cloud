@@ -47,7 +47,8 @@ def settings() -> Dict[str, Any]:
                 "chaosiq-cloud": {
                     "features": {
                         "publish": 'on',
-                        "safeguards": 'on'
+                        "safeguards": 'on',
+                        "workspace": 'on'
                     }
                 }
             }
