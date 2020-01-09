@@ -10,11 +10,27 @@ def default_org_id() -> str:
 
 
 @pytest.fixture
-def default_org(default_org_id: str) -> Dict[str, str]:
+def default_team_id() -> str:
+    return str(uuid.uuid4())
+
+
+@pytest.fixture
+def default_team(default_team_id: str) -> str:
+    return {
+        "id": default_team_id,
+        "name": "myteam",
+        "default": True
+    }
+
+
+@pytest.fixture
+def default_org(default_org_id: str,
+                default_team: Dict[str, Any]) -> Dict[str, str]:
     return {
         "id": default_org_id,
         "name": "myorg",
-        "default": True
+        "default": True,
+        "teams": [default_team]
     }
 
 

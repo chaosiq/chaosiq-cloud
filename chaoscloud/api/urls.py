@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 
 __all__ = ["base", "experiment", "execution", "clean", "safeguard", "host",
-           "org", "full"]
+           "org", "full", "team"]
 
 
 def base(base_url: str) -> str:
@@ -45,6 +45,15 @@ def org(base_url: str, organization_id: str = None) -> str:
     return '/'.join([base_url, 'organizations', organization_id])
 
 
+def team(base_url: str, team_id: str = None) -> str:
+    """
+    Build the URL to access teams in an organization
+    """
+    if not team_id:
+        return '/'.join([base_url, 'teams'])
+    return '/'.join([base_url, 'teams', team_id])
+
+
 def safeguard(base_execution_url: str) -> str:
     """
     Build the URL to fetch safeguards from for an execution
@@ -68,7 +77,7 @@ def host(url: str) -> str:
     return urlparse(url).netloc
 
 
-def full(base: str, org_id: str, experiment_id: str = None,
+def full(base: str, org_id: str, team_id: str, experiment_id: str = None,
          execution_id: str = None, with_experiments: bool = False,
          with_executions: bool = False, with_events: bool = False,
          with_safeguards: bool = False) -> str:
@@ -76,19 +85,19 @@ def full(base: str, org_id: str, experiment_id: str = None,
     Build the appropriate url for various resources.
 
     * `experiment_id` set to `None`  but `with_experiments`  set to `True`
-      will give `base/organizations/org_id/experiments`
+      will give `base/organizations/org_id/teams/team_id/experiments`
     * `experiment_id` set
-      will give `base/organizations/org_id/experiments/experiment_id`
+      will give `base/organizations/org_id/teams/team_id/experiments/experiment_id`
     * `execution_id` set to `None`  but `with_executions`  set to `True`
-      will give `base/organizations/org_id/experiments/experiment_id/executions`
+      will give `base/organizations/org_id/teams/team_id/experiments/experiment_id/executions`
     * `execution_id` set
-      will give `base/organizations/org_id/experiments/experiment_id/executions/execution_id`
+      will give `base/organizations/org_id/teams/team_id/experiments/experiment_id/executions/execution_id`
     * `with_events` set
-      will give `base/organizations/org_id/experiments/experiment_id/executions/execution_id/events`
+      will give `base/organizations/org_id/teams/team_id/experiments/experiment_id/executions/execution_id/events`
     * `with_safeguards` set
-      will give `base/organizations/org_id/policies`
+      will give `base/organizations/org_id/teams/team_id/policies`
     """  # noqa: E501
-    url = org(base, org_id)
+    url = team(org(base, org_id), team_id)
     if with_experiments or experiment_id:
         url = experiment(url, experiment_id=experiment_id)
         if with_executions or execution_id:

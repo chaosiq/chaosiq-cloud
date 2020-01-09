@@ -10,7 +10,7 @@ ENDPOINT = "https://chaosiq.io"
 
 def test_configure_control_creates_experiment_and_execution_when_new(
                                                 organizations, default_org_id,
-                                                settings):
+                                                default_team_id, settings):
     x_id = str(uuid.uuid4())
     e_id = str(uuid.uuid4())
     extensions = [
@@ -25,7 +25,8 @@ def test_configure_control_creates_experiment_and_execution_when_new(
 
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, with_experiments=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            with_experiments=True)
         m.post(
             url, status_code=201,
             json={
@@ -38,7 +39,8 @@ def test_configure_control_creates_experiment_and_execution_when_new(
         )
 
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, e_id, with_executions=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id, e_id,
+            with_executions=True)
         m.post(
             url, status_code=201,
             json={
@@ -57,7 +59,7 @@ def test_configure_control_creates_experiment_and_execution_when_new(
 
 
 def test_experiment_id_must_be_stored_in_journal(
-        organizations, default_org_id, settings):
+        organizations, default_org_id, default_team_id, settings):
     x_id = str(uuid.uuid4())
     e_id = str(uuid.uuid4())
     ev_id = str(uuid.uuid4())
@@ -78,7 +80,8 @@ def test_experiment_id_must_be_stored_in_journal(
 
     with requests_mock.mock() as m:
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, with_experiments=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id,
+            with_experiments=True)
         m.post(
             url, status_code=201,
             json={
@@ -91,7 +94,8 @@ def test_experiment_id_must_be_stored_in_journal(
         )
 
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, e_id, with_executions=True)
+            urls.base(ENDPOINT), default_org_id, default_team_id, e_id,
+            with_executions=True)
         m.post(
             url, status_code=201,
             json={
@@ -104,7 +108,7 @@ def test_experiment_id_must_be_stored_in_journal(
         )
 
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, e_id, x_id,
+            urls.base(ENDPOINT), default_org_id, default_team_id, e_id, x_id,
             with_executions=True, with_events=True)
         m.post(
             url, status_code=201,
@@ -118,7 +122,7 @@ def test_experiment_id_must_be_stored_in_journal(
         )
 
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, e_id, x_id,
+            urls.base(ENDPOINT), default_org_id, default_team_id, e_id, x_id,
             with_executions=True, with_safeguards=True)
         m.get(
             url, status_code=201,
@@ -131,7 +135,7 @@ def test_experiment_id_must_be_stored_in_journal(
         )
 
         url = urls.full(
-            urls.base(ENDPOINT), default_org_id, e_id, x_id,
+            urls.base(ENDPOINT), default_org_id, default_team_id, e_id, x_id,
             with_executions=True)
         m.put(
             url, status_code=204,
