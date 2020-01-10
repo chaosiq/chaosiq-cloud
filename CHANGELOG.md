@@ -7,8 +7,10 @@
 ### Changed
 
 - Adapted to use the organization/team schema of the remote API [#27][27]
+- Fixed: features were reset to default value when updating settings [#31][31]
 
 [27]: https://github.com/chaosiq/chaosiq-cloud/issues/27
+[31]: https://github.com/chaosiq/chaosiq-cloud/issues/31
 
 ## [0.5.0][] - 2019-11-26
 

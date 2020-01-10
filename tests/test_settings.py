@@ -36,6 +36,9 @@ def test_updating_existing_chaosiq_settings(default_org, default_team):
     settings = {
         'controls': {
             'chaosiq-cloud': {
+                'features': {
+                    'publish': 'off'
+                },
                 'provider': {
                     'type': 'python',
                     'module': 'chaoscloud.controls',
@@ -70,6 +73,10 @@ def test_updating_existing_chaosiq_settings(default_org, default_team):
     assert args['url'] == hub_url
     assert 'verify_tls' in args
     assert args['verify_tls'] is True
+
+    assert 'features' in settings['controls']['chaosiq-cloud']
+    features = settings['controls']['chaosiq-cloud']['features']
+    assert features.get('publish') == 'off'
 
 
 def test_update_auth_token(default_org, default_team):

@@ -29,11 +29,11 @@ def set_settings(url: str, token: str, verify_tls: bool,
     set_default_team(default_org, default_team)
     set_default_org(settings, default_org)
 
+    features = control.setdefault('features', {})
+    for feature in ['publish', 'safeguards']:
+        features.setdefault(feature, 'on')
+
     control.update({
-        'features': {
-            'publish': 'on',
-            'safeguards': 'on',
-        },
         'provider': {
             'type': 'python',
             'module': 'chaoscloud.controls',
