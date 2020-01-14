@@ -20,9 +20,10 @@ from .api.ssl import verify_ssl_certificate
 from .api.team import request_teams
 from .api import urls
 from .settings import set_settings, get_endpoint_url, get_orgs, \
-    verify_tls_certs, enable_safeguards, enable_publishing, \
-    disable_safeguards, disable_publishing, get_verify_tls, get_auth_token, \
-    get_default_org
+    verify_tls_certs, \
+    get_verify_tls, get_auth_token, \
+    get_default_org, \
+    enable_feature, disable_feature, FEATURES
 
 __all__ = ["signin", "publish", "org", "enable", "disable", "team"]
 
@@ -155,7 +156,7 @@ def publish(ctx: click.Context, journal: str):
 
 
 @cli.command(help="Enable a ChaosIQ feature")
-@click.argument('feature', type=click.Choice(['safeguards', 'publish']))
+@click.argument('feature', type=click.Choice(FEATURES))
 @click.pass_context
 def enable(ctx: click.Context, feature: str):
     """
@@ -165,15 +166,12 @@ def enable(ctx: click.Context, feature: str):
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path)
-    if feature == "safeguards":
-        enable_safeguards(settings)
-    elif feature == "publish":
-        enable_publishing(settings)
+    enable_feature(settings, feature)
     save_settings(settings, settings_path)
 
 
 @cli.command(help="Disable a ChaosIQ feature")
-@click.argument('feature', type=click.Choice(['safeguards', 'publish']))
+@click.argument('feature', type=click.Choice(FEATURES))
 @click.pass_context
 def disable(ctx: click.Context, feature: str):
     """
@@ -183,10 +181,7 @@ def disable(ctx: click.Context, feature: str):
     """
     settings_path = ctx.obj["settings_path"]
     settings = load_settings(settings_path)
-    if feature == "safeguards":
-        disable_safeguards(settings)
-    elif feature == "publish":
-        disable_publishing(settings)
+    disable_feature(settings, feature)
     save_settings(settings, settings_path)
 
 

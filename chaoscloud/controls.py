@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 from typing import Any, Dict, List, NoReturn
 from urllib.parse import urlsplit, urlunsplit
 
@@ -15,8 +16,13 @@ from .api.safeguard import is_allowed_to_continue, \
     set_applied_safeguards_for_execution
 from .settings import is_feature_enabled
 from .sig import register_cleanup_on_forced_exit
-
-Organizations = List[Dict[str, Any]]
+from .workspace import initialize_workspace_path, \
+    load_workspace, save_workspace, \
+    get_experiment_metadata_from_workspace, \
+    register_experiment_to_workspace
+from .extension import set_extension_value, \
+    remove_sensitive_extension_values
+from .types import Organizations
 
 
 def configure_control(experiment: Experiment, settings: Settings,
@@ -27,6 +33,7 @@ def configure_control(experiment: Experiment, settings: Settings,
     """
     Initialize the execution's journal and publish both the experiment
     and the journal.
+    Updates the ChaosIQ workspace for local files experiments.
     """
     register_cleanup_on_forced_exit()
 
@@ -37,14 +44,39 @@ def configure_control(experiment: Experiment, settings: Settings,
             "Run `chaos enable publish` to activate the extension again.")
         return
 
-    journal = initialize_run_journal(experiment)
-    with client_session(url, organizations, verify_tls, settings) as session:
+    with remove_sensitive_extension_values(experiment, ["experiment_path"]):
+        journal = initialize_run_journal(experiment)
+
+    with client_session(url, organizations, verify_tls, settings) as \
+            session:
         publish_experiment(session, experiment)
         initialize_execution(session, experiment, journal)
 
+    if is_feature_enabled(settings, "workspace"):
+        register_experiment_to_workspace(experiment, organizations)
+        save_workspace()
 
-def after_loading_experiment_control(context: str, state: Experiment, *,
-                                     url: str, verify_tls: bool = False,
+
+def before_loading_experiment_control(context: str, state: Experiment,
+                                      settings: Settings = None,
+                                      *, url: str, verify_tls: bool = False,
+                                      organizations: Organizations = None) \
+                                          -> NoReturn:
+    """
+    Ensure the ChaosIQ workspace sub-folder exists for the folder
+    containing the experiment loaded from the local file system.
+    """
+    if not os.path.exists(context):
+        return
+
+    if is_feature_enabled(settings, "workspace"):
+        initialize_workspace_path(context)
+        load_workspace()
+
+
+def after_loading_experiment_control(context: str, state: Experiment,
+                                     settings: Settings = None,
+                                     *, url: str, verify_tls: bool = False,
                                      organizations: Organizations = None) \
                                          -> NoReturn:
     """
@@ -54,28 +86,45 @@ def after_loading_experiment_control(context: str, state: Experiment, *,
 
     We do not send any username/password/token found in the network location
     part of the source, if it's an URL. It is stripped out before being sent.
+
+    In case the experimentation is a valid path on the local file system,
+    once loaded, we need to check whether this is a new experiment
+    or one that is already known (previously run) ie that has an
+    experiment ID stored in the workspace associated to the local path.
+    If so, we set another plugin key `experiment_path` within the experiment.
+
+    NB: For local files, we can NOT use the source as this does not work
+    when two users publish experiments from their own machine, with the same
+    path, as it would be recognized as the same experiment, which might not be!
+
+    Source is supposed to be unique for any user within the same organization
     """
+    if os.path.exists(context) and is_feature_enabled(settings, "workspace"):
+        meta = get_experiment_metadata_from_workspace(
+            state, organizations, context)
+        experiment_id = meta.get("experiment_id") if meta else None
+        if experiment_id:
+            # this is a known experiment, update it with its ID from workspace
+            logger.debug(
+                "Using experiment ID {id} from workspace "
+                "for experiment at location {path}".format(
+                    id=experiment_id, path=context))
+            set_extension_value(state, "experiment_id", experiment_id)
+        else:
+            # here this is the first time we uses this experiment path,
+            # hence register it for later use after the experiment has been
+            # published so that we can link the path and the API generated ID
+            set_extension_value(state, "experiment_path", context)
+
     parsed = urlsplit(context)
-    if parsed.scheme.lower() not in ('http', 'https'):
-        # probably not even a url, maybe a local path
-        return
+    if parsed.scheme.lower() in ('http', 'https'):
+        dup = list(parsed)
+        # we do not want to track sensitive data such as username/password/tokens  # noqa: E501
+        if parsed.username or parsed.password:
+            dup[1] = parsed.hostname
+            context = urlunsplit(dup)
 
-    dup = list(parsed)
-    # we do not want to track sensitive data such as username/password/tokens
-    if parsed.username or parsed.password:
-        dup[1] = parsed.hostname
-        context = urlunsplit(dup)
-
-    extensions = state.setdefault("extensions", [])
-    for extension in extensions:
-        if extension["name"] == "chaosiq":
-            extension["source"] = context
-            break
-    else:
-        extensions.append({
-            "name": "chaosiq",
-            "source": context
-        })
+        set_extension_value(state, "source", context)
 
 
 def before_experiment_control(context: Experiment,

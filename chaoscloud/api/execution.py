@@ -18,6 +18,7 @@ from tzlocal import get_localzone
 
 from . import urls, get_chaosiq_extension_from_journal, get_experiment_id, \
     get_execution_id, set_execution_id
+from ..extension import remove_sensitive_extension_values
 
 __all__ = ["publish_event", "initialize_execution", "publish_execution",
            "fetch_execution"]
@@ -38,10 +39,12 @@ def initialize_execution(session: Session, experiment: Experiment,
     execution_url = urls.execution(
         urls.experiment(session.base_url, experiment_id=experiment_id))
     try:
-        data = json.dumps(
-            {
-                "journal": journal
-            }, ensure_ascii=False, default=json_encoder)
+        with remove_sensitive_extension_values(
+                journal["experiment"], ["experiment_path"]):
+            data = json.dumps(
+                {
+                    "journal": journal
+                }, ensure_ascii=False, default=json_encoder)
         r = session.post(execution_url, data=data, headers={
             "content-type": "application/json"
         })
@@ -74,13 +77,15 @@ def publish_execution(session: Session,
         urls.experiment(session.base_url, experiment_id=experiment_id),
         execution_id=execution_id)
     try:
-        data = json.dumps(
-            {
-                "journal": journal
-            }, ensure_ascii=False, default=json_encoder)
-        r = session.put(execution_url, data=data, headers={
-            "content-type": "application/json"
-        })
+        with remove_sensitive_extension_values(
+                journal["experiment"], ["experiment_path"]):
+            data = json.dumps(
+                {
+                    "journal": journal
+                }, ensure_ascii=False, default=json_encoder)
+            r = session.put(execution_url, data=data, headers={
+                "content-type": "application/json"
+            })
     except Exception:
         logger.debug("Failed to upload execution", exc_info=True)
         return

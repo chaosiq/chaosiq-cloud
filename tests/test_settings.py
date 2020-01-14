@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from chaoscloud.settings import get_endpoint_url, set_settings
+from chaoscloud.settings import get_endpoint_url, set_settings, \
+    FEATURES, enable_feature, disable_feature, is_feature_enabled
 
 
 def test_adding_new_chaosiq_settings(default_org, default_team):
@@ -156,3 +157,33 @@ def test_get_default_when_none_found():
         }
     }
     assert get_endpoint_url(settings) == 'https://console.chaosiq.io'
+
+
+def test_enable_disable_valid_feature(default_org):
+    settings = {
+        'controls': {
+            'chaosiq-cloud': {
+                'features': {}
+            }
+        }
+    }
+    feature = FEATURES[0]
+
+    enable_feature(settings, feature)
+    assert settings['controls']['chaosiq-cloud']['features'][feature] == 'on'
+    assert is_feature_enabled(settings, feature)
+
+    disable_feature(settings, feature)
+    assert settings['controls']['chaosiq-cloud']['features'][feature] == 'off'
+    assert not is_feature_enabled(settings, feature)
+
+
+def test_enable_disable_invalid_feature(default_org):
+    settings = {}
+    feature = "invalid"
+
+    enable_feature(settings, feature)
+    assert settings == {}
+
+    disable_feature(settings, feature)
+    assert settings == {}

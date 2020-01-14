@@ -6,6 +6,7 @@ from logzero import logger
 import requests
 
 from . import urls
+from ..extension import remove_sensitive_extension_values
 
 __all__ = ["publish_experiment"]
 
@@ -17,9 +18,11 @@ def publish_experiment(session: requests.Session,
     """
     try:
         experiment_url = urls.experiment(session.base_url)
-        r = session.post(experiment_url, json={
-            "experiment": experiment
-        })
+        with remove_sensitive_extension_values(
+                experiment, ["experiment_path"]):
+            r = session.post(experiment_url, json={
+                "experiment": experiment
+            })
     except Exception:
         logger.warning(
             "Failed to publish experiment to '{}'".format(experiment_url))
