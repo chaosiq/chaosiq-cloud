@@ -73,6 +73,12 @@ def publish_execution(session: Session,
     experiment = journal["experiment"]
     experiment_id = get_experiment_id(experiment.get("extensions"))
     execution_id = get_execution_id(experiment.get("extensions"))
+    if not execution_id:
+        logger.debug(
+            "Cannot publish execution to ChaosIQ because execution "
+            "identifier was not found in the experiment's extensions block.")
+        return
+
     execution_url = urls.execution(
         urls.experiment(session.base_url, experiment_id=experiment_id),
         execution_id=execution_id)
