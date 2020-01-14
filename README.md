@@ -220,3 +220,18 @@ To run the tests for the project execute the following:
 ```
 $ pytest
 ```
+
+### Release
+
+In order to release this package, you must first bump its version in
+`chaoscloud/__init__.py` as well as the CHANGELOG. Commit and push these
+changes. Then run the followings:
+
+```
+$ git tag VERSION
+$ git push origin VERSION
+```
+
+where `VERSION` is the semantic version you set in `chaoscloud/__init__.py`.
+
+Once the tag was built, it should have released the package on Pypi.
