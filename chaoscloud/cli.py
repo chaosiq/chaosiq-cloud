@@ -1,41 +1,34 @@
 # -*- coding: utf-8 -*-
 import io
+from typing import Any, Dict
 from urllib.parse import urlparse
 
-from chaoslib.settings import load_settings, save_settings, \
-    CHAOSTOOLKIT_CONFIG_PATH
 import click
-from logzero import logger
 import requests
 import simplejson as json
-from typing import Any, Dict
+from chaoslib.control import load_global_controls
+from chaoslib.exceptions import ChaosException, InvalidSource
+from chaoslib.experiment import ensure_experiment_is_valid
+from chaoslib.loader import load_experiment
+from chaoslib.settings import load_settings, save_settings
+from chaostoolkit.cli import cli
+from logzero import logger
 from urllib3.exceptions import InsecureRequestWarning
 
-from . import __version__
-from .api import client_session
+from .api import client_session, urls
+from .api.execution import fetch_execution, initialize_execution
 from .api.experiment import publish_experiment
-from .api.execution import initialize_execution, fetch_execution
 from .api.organization import request_orgs
 from .api.ssl import verify_ssl_certificate
 from .api.team import request_teams
-from .api import urls
-from .settings import set_settings, get_endpoint_url, get_orgs, \
-    verify_tls_certs, \
-    get_verify_tls, get_auth_token, \
-    get_default_org, \
-    enable_feature, disable_feature, FEATURES
+from .settings import (FEATURES, disable_feature, enable_feature,
+                       get_auth_token, get_default_org, get_endpoint_url,
+                       get_orgs, get_verify_tls, set_settings,
+                       verify_tls_certs)
+from .verify.exceptions import VerificationException
+from .verify.verification import run_verification, ensure_verification_is_valid
 
-__all__ = ["signin", "publish", "org", "enable", "disable", "team"]
-
-
-@click.group()
-@click.version_option(version=__version__)
-@click.option('--settings', default=CHAOSTOOLKIT_CONFIG_PATH,
-              show_default=True, help="Path to the settings file.")
-@click.pass_context
-def cli(ctx: click.Context, settings: str = CHAOSTOOLKIT_CONFIG_PATH):
-    ctx.obj = {}
-    ctx.obj["settings_path"] = click.format_filename(settings)
+__all__ = ["signin", "publish", "org", "enable", "disable", "team", "verify"]
 
 
 @cli.command(help="Sign-in with your ChaosIQ credentials")
@@ -183,6 +176,48 @@ def disable(ctx: click.Context, feature: str):
     settings = load_settings(settings_path)
     disable_feature(settings, feature)
     save_settings(settings, settings_path)
+
+
+@cli.command()
+@click.option('--dry', is_flag=True,
+              help='Run the verification without executing activities.')
+@click.option('--no-validation', is_flag=True,
+              help='Do not validate the verification before running.')
+@click.argument('source')
+@click.pass_context
+def verify(ctx: click.Context, source: str,
+           dry: bool = False, no_validation: bool = False):
+    """Run the verification loaded from SOURCE, either a local file or a
+       HTTP resource. SOURCE can be formatted as JSON or YAML."""
+
+    settings = load_settings(ctx.obj["settings_path"]) or {}
+    load_global_controls(settings)
+
+    try:
+        verification = load_experiment(
+            click.format_filename(source), settings)
+    except InvalidSource as x:
+        logger.error(str(x))
+        logger.debug(x)
+        ctx.exit(1)
+
+    if not no_validation:
+        try:
+            ensure_experiment_is_valid(verification)
+        except ChaosException as x:
+            logger.error(str(x))
+            logger.debug(x)
+            ctx.exit(1)
+        try:
+            ensure_verification_is_valid(verification)
+        except VerificationException as v:
+            logger.error(str(v))
+            logger.debug(v)
+            ctx.exit(1)
+
+    verification["dry"] = dry
+
+    run_verification(verification, settings=settings)
 
 
 ###############################################################################

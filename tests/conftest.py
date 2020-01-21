@@ -1,5 +1,6 @@
-from typing import Any, Dict, List
+import tempfile
 import uuid
+from typing import Any, Dict, List
 
 import pytest
 
@@ -53,3 +54,9 @@ def settings() -> Dict[str, Any]:
                 }
             }
     }
+
+
+@pytest.fixture(scope='function')
+def log_file():
+    with tempfile.NamedTemporaryFile() as f:
+        yield f

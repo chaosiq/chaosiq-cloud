@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 """Chaos Toolkit Cloud builder and installer"""
 
-import sys
 import io
 import os
+import sys
 
 import setuptools
 
@@ -84,7 +84,8 @@ setup_params = dict(
             'enable = chaoscloud.cli:enable',
             'disable = chaoscloud.cli:disable',
             'org = chaoscloud.cli:org',
-            'team = chaoscloud.cli:team'
+            'team = chaoscloud.cli:team',
+            'verify = chaoscloud.cli:verify'
         ]
     }
 )
