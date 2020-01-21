@@ -1,11 +1,10 @@
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
-from chaoslib.settings import load_settings
-from click.testing import CliRunner
 import requests_mock
-
-from chaoscloud.cli import cli
+from chaoslib.settings import load_settings
+from chaostoolkit.cli import cli
+from click.testing import CliRunner
 
 
 @patch('chaoscloud.cli.signin', spec=True)
@@ -149,3 +148,16 @@ def test_org(org):
                 "name": "myteam",
                 "default": True
             }]
+
+
+def test_verify_source_path_must_exist(log_file):
+    runner = CliRunner()
+    result = runner.invoke(cli, [
+        '--log-file', log_file.name, 'verify', 'invalid.jsn'])
+    assert result.exit_code == 1
+    assert result.exception
+
+    log_file.seek(0)
+    log = log_file.read().decode('utf-8')
+    print("log" + log)
+    assert 'Path "invalid.jsn" does not exist.' in log
