@@ -8,7 +8,6 @@ import requests
 import simplejson as json
 from chaoslib.control import load_global_controls
 from chaoslib.exceptions import ChaosException, InvalidSource
-from chaoslib.experiment import ensure_experiment_is_valid
 from chaoslib.loader import load_experiment
 from chaoslib.settings import load_settings, save_settings
 from chaostoolkit.cli import cli
@@ -25,8 +24,7 @@ from .settings import (FEATURES, disable_feature, enable_feature,
                        get_auth_token, get_default_org, get_endpoint_url,
                        get_orgs, get_verify_tls, set_settings,
                        verify_tls_certs)
-from .verify.exceptions import VerificationException
-from .verify.verification import run_verification, ensure_verification_is_valid
+from .verify.verification import ensure_verification_is_valid, run_verification
 
 __all__ = ["signin", "publish", "org", "enable", "disable", "team", "verify"]
 
@@ -203,14 +201,8 @@ def verify(ctx: click.Context, source: str,
 
     if not no_validation:
         try:
-            ensure_experiment_is_valid(verification)
-        except ChaosException as x:
-            logger.error(str(x))
-            logger.debug(x)
-            ctx.exit(1)
-        try:
             ensure_verification_is_valid(verification)
-        except VerificationException as v:
+        except ChaosException as v:
             logger.error(str(v))
             logger.debug(v)
             ctx.exit(1)
