@@ -9,33 +9,6 @@ from chaoscloud.api.experiment import publish_experiment
 ENDPOINT = "https://chaosiq.io"
 
 
-def test_experiment_not_created_when_invalid_type(organizations,
-                                                  default_org_id,
-                                                  default_team_id):
-    # the remote endpoint cannot deal with anything but a experiment
-    experiment = []
-    with requests_mock.mock() as m:
-        url = urls.full(
-            urls.base(ENDPOINT), default_org_id, default_team_id,
-            with_experiments=True)
-        m.post(
-            url, status_code=422, json=[
-                {
-                    "loc": ["a_dict"],
-                    "msg": "value is not a valid dict",
-                    "type": "type_error.dict"
-                }
-            ],
-            headers={
-                "content-type": "application/json"
-            }
-        )
-        with client_session(ENDPOINT, organizations) as s:
-            r = publish_experiment(s, experiment)
-            assert r.status_code == 422
-            assert experiment == []
-
-
 def test_experiment_not_created_when_unmodified(
         organizations, default_org_id, default_team_id):
     experiment = {
