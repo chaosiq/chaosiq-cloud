@@ -2,7 +2,7 @@
 
 ExperimentWithoutExtensionBlock = {
     "version": "1.0.0",
-    "title": "Verify somethig important to me!",
+    "title": "Verify something important to me!",
     "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
@@ -44,7 +44,7 @@ ExperimentWithoutExtensionBlock = {
 
 ExperimentWithoutChaosIQExtensionBlock = {
     "version": "1.0.0",
-    "title": "Verify somethig important to me!",
+    "title": "Verify something important to me!",
     "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
@@ -87,7 +87,7 @@ ExperimentWithoutChaosIQExtensionBlock = {
 
 ExperimentWithoutChaosIQVerificationBlock = {
     "version": "1.0.0",
-    "title": "Verify somethig important to me!",
+    "title": "Verify something important to me!",
     "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
@@ -134,7 +134,7 @@ ExperimentWithoutChaosIQVerificationBlock = {
 
 ExperimentWithoutVerificationId = {
     "version": "1.0.0",
-    "title": "Verify somethig important to me!",
+    "title": "Verify something important to me!",
     "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
@@ -181,7 +181,7 @@ ExperimentWithoutVerificationId = {
 
 ExperimentWithoutMeasurementFrequency = {
     "version": "1.0.0",
-    "title": "Verify somethig important to me!",
+    "title": "Verify something important to me!",
     "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
@@ -231,7 +231,7 @@ ExperimentWithoutMeasurementFrequency = {
 
 ExperimentWithoutConditionsDuration = {
     "version": "1.0.0",
-    "title": "Verify somethig important to me!",
+    "title": "Verify something important to me!",
     "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
@@ -287,8 +287,8 @@ ExperimentWithoutConditionsDuration = {
 
 ExperimentWithCompleteVerification = {
     "version": "1.0.0",
-    "title": "Drains a Kubernetes node.",
-    "description": "Verifies an SLO under the conditions of a drained node",
+    "title": "Verify something important to me!",
+    "description": "Verifies an SLO under some conditions",
     "contributions": {
         "availability": "high",
         "reliability": "high",
