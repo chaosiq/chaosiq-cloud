@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
+from chaoslib.exceptions import ChaosException
 
-__all__ = ["VerificationException"]
+__all__ = ["VerificationException", "InvalidVerification"]
 
 
-class VerificationException(Exception):
+class VerificationException(ChaosException):
+    pass
+
+
+class InvalidVerification(VerificationException):
     pass
