@@ -301,30 +301,10 @@ ExperimentWithCompleteVerification = {
             "name": "chaosiq",
             "verification": {
                 "id": "SOME_GUID",
-                "warm-up-duration": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 1,
-                    "seconds": 0
-                },
-                "frequency-of-measurement": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 1,
-                    "seconds": 0
-                },
-                "duration-of-conditions": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 30,
-                    "seconds": 0
-                },
-                "cool-down-duration": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 1,
-                    "seconds": 0
-                }
+                "warm-up-duration": 60,
+                "frequency-of-measurement": 60,
+                "duration-of-conditions": 1800,
+                "cool-down-duration": 60
             }
         }
     ],
