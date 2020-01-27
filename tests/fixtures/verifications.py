@@ -497,10 +497,10 @@ ExperimentWithCompleteVerification = {
             "name": "chaosiq",
             "verification": {
                 "id": "SOME_GUID",
-                "warm-up-duration": 60,
+                "warm-up-duration": 2,
                 "frequency-of-measurement": 2,
                 "duration-of-conditions": 10,
-                "cool-down-duration": 60
+                "cool-down-duration": 2
             }
         }
     ],

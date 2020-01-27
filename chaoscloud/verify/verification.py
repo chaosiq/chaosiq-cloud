@@ -2,8 +2,8 @@
 import threading
 import time
 
-from chaoslib.caching import with_cache
 import chaoslib.experiment
+from chaoslib.caching import with_cache
 from chaoslib.types import Experiment, Settings
 from logzero import logger
 
@@ -57,13 +57,14 @@ def run_verification(experiment: Experiment,
                      settings: Settings = None):
     logger.info("Running verification: {t}".format(t=experiment["title"]))
 
-    measurements_experiment = build_measurements_experiment(experiment)
-    extensions = measurements_experiment.get("extensions")
+    extensions = experiment.get("extensions")
     chaosiq_blocks = list(filter(
         lambda extension: extension.get("name", "") == "chaosiq",
         extensions))
     verification = chaosiq_blocks[0].get("verification")
     frequency = verification.get("frequency-of-measurement")
+
+    measurements_experiment = build_measurements_experiment(experiment)
 
     stop_measurements_event = threading.Event()
     measurements_thread = threading.Thread(target=run_measurements_experiment,
@@ -72,10 +73,57 @@ def run_verification(experiment: Experiment,
                                                  settings, frequency))
     measurements_thread.start()
 
+    warm_up_duration = verification.get("warm-up-duration")
+    logger.info(
+        "Starting warm-up period for verification: {t}, duration: {d} seconds"
+        .format(t=experiment["title"], d=warm_up_duration))
+    pause_for_duration(warm_up_duration)
+    logger.info(
+        "Finished warm-up period for verification: {t}"
+        .format(t=experiment["title"]))
+
+    conditions_experiment = build_conditions_experiment(experiment)
+    logger.info(
+        "Triggering conditions for verification: {t}".format(
+            t=conditions_experiment["title"]))
+    run_experiment(conditions_experiment, settings)
+    logger.info(
+        "Finished triggering conditions for verification: {t}".format(
+            t=conditions_experiment["title"]))
+
     duration_of_conditions = verification.get("duration-of-conditions")
-    time.sleep(duration_of_conditions)
+    logger.info(
+        ("Starting duration for conditions for verification: {t}, "
+         "duration: {d} seconds").format(
+            t=experiment["title"],
+            d=duration_of_conditions))
+    pause_for_duration(duration_of_conditions)
+    logger.info(
+        "Finished duration for conditions for verification: {t}"
+        .format(t=experiment["title"]))
+
+    cool_down_duration = verification.get("cool-down-duration")
+    logger.info(
+        ("Starting cool-down period for verification: {t}, "
+         "duration: {d} seconds").format(
+             t=experiment["title"],
+             d=cool_down_duration))
+    pause_for_duration(cool_down_duration)
+    logger.info(
+        "Finished cool-down period for verification: {t}"
+        .format(t=experiment["title"]))
+
     stop_measurements_event.set()
     measurements_thread.join()
+
+    rollbacks_experiment = build_rollbacks_experiment(experiment)
+    logger.info(
+        "Triggering any rollbacks for verification: {t}".format(
+            t=rollbacks_experiment["title"]))
+    run_experiment(rollbacks_experiment, settings)
+    logger.info(
+        "Finished triggering any rollbacks for verification: {t}".format(
+            t=conditions_experiment["title"]))
 
     logger.info(
         "Finished running verification: {t}".format(t=experiment["title"]))
@@ -85,11 +133,26 @@ def run_verification(experiment: Experiment,
 # Internals
 ###############################################################################
 def build_measurements_experiment(experiment: Experiment):
-    if has_steady_state_hypothesis_with_probes(experiment):
-        experiment["method"] = []
-        experiment["rollbacks"] = []
-        return experiment
+    measurements_experiment = experiment.copy()
+    if has_steady_state_hypothesis_with_probes(measurements_experiment):
+        measurements_experiment["method"] = []
+        measurements_experiment["rollbacks"] = []
+        return measurements_experiment
     return None
+
+
+def build_conditions_experiment(experiment: Experiment):
+    conditions_experiment = experiment.copy()
+    conditions_experiment["steady-state-hypothesis"] = {}
+    conditions_experiment["rollbacks"] = []
+    return conditions_experiment
+
+
+def build_rollbacks_experiment(experiment: Experiment):
+    rollbacks_experiment = experiment.copy()
+    rollbacks_experiment["steady-state-hypothesis"] = {}
+    rollbacks_experiment["method"] = []
+    return rollbacks_experiment
 
 
 def has_steady_state_hypothesis_with_probes(experiment: Experiment):
@@ -123,3 +186,8 @@ def run_measurements_experiment(stop_measurements_event: threading.Event,
 
 def run_experiment(experiment: Experiment, settings: Settings):
     chaoslib.experiment.run_experiment(experiment, settings)
+
+
+def pause_for_duration(duration):
+    if duration:
+        time.sleep(duration)
