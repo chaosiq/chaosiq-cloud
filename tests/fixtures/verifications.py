@@ -498,8 +498,8 @@ ExperimentWithCompleteVerification = {
             "verification": {
                 "id": "SOME_GUID",
                 "warm-up-duration": 60,
-                "frequency-of-measurement": 60,
-                "duration-of-conditions": 1800,
+                "frequency-of-measurement": 2,
+                "duration-of-conditions": 10,
                 "cool-down-duration": 60
             }
         }
