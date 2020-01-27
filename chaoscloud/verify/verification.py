@@ -53,3 +53,25 @@ def ensure_verification_is_valid(experiment: Experiment):
 def run_verification(experiment: Experiment,
                      settings: Settings = None):
     logger.info("Running verification: {t}".format(t=experiment["title"]))
+
+    build_measurements_experiment(experiment)
+
+
+###############################################################################
+# Internals
+###############################################################################
+def build_measurements_experiment(experiment: Experiment):
+    if has_steady_state_hypothesis_with_probes(experiment):
+        experiment["method"] = {}
+        experiment["rollbacks"] = {}
+        return experiment
+    return None
+
+
+def has_steady_state_hypothesis_with_probes(experiment: Experiment):
+    steady_state_hypothesis = experiment.get("steady-state-hypothesis")
+    if steady_state_hypothesis:
+        probes = steady_state_hypothesis.get("probes")
+        if probes:
+            return len(probes) > 0
+    return None

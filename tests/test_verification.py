@@ -2,13 +2,21 @@
 import pytest
 
 from chaoscloud.verify.exceptions import InvalidVerification
-from chaoscloud.verify.verification import ensure_verification_is_valid
-from fixtures.verifications import (ExperimentWithoutChaosIQExtensionBlock,
-                                    ExperimentWithoutChaosIQVerificationBlock,
-                                    ExperimentWithoutConditionsDuration,
-                                    ExperimentWithoutExtensionBlock,
-                                    ExperimentWithoutMeasurementFrequency,
-                                    ExperimentWithoutVerificationId)
+from chaoscloud.verify.verification import (
+    build_measurements_experiment,
+    ensure_verification_is_valid,
+    has_steady_state_hypothesis_with_probes)
+from fixtures.verifications import (
+    ExperimentWithCompleteVerification,
+    ExperimentWithNoSteadyStateHypothesis,
+    ExperimentWithNoSteadyStateHypothesisProbes,
+    ExperimentWithoutChaosIQExtensionBlock,
+    ExperimentWithoutChaosIQVerificationBlock,
+    ExperimentWithoutConditionsDuration,
+    ExperimentWithoutExtensionBlock,
+    ExperimentWithoutMeasurementFrequency,
+    ExperimentWithoutVerificationId,
+    ExperimentWithSteadyStateHypothesWithProbe)
 
 
 def test_verification_without_extension_block_is_invalid():
@@ -56,3 +64,28 @@ def test_verification_without_conditions_duration_is_invalid():
             ExperimentWithoutConditionsDuration)
     assert "a verification must have a duration-of-conditions block" in \
         str(exc.value)
+
+
+def test_measurements_experiment_built_when_steady_state_complete():
+    measurements_experiment = build_measurements_experiment(
+        ExperimentWithCompleteVerification)
+    assert measurements_experiment is not None
+    method = measurements_experiment.get("method")
+    assert len(method) == 0
+    rollbacks = measurements_experiment.get("rollbacks")
+    assert len(rollbacks) == 0
+
+
+def test_no_measurements_experiment_built_when_no_steady_state_hypothesis():
+    assert build_measurements_experiment(
+        ExperimentWithNoSteadyStateHypothesis) is None
+
+
+def test_has_steady_state_hypothesis_when_has_a_probe():
+    assert has_steady_state_hypothesis_with_probes(
+        ExperimentWithSteadyStateHypothesWithProbe) is not None
+
+
+def test_has_no_steady_state_hypothesis_when_has_no_probes():
+    assert has_steady_state_hypothesis_with_probes(
+        ExperimentWithNoSteadyStateHypothesisProbes) is None
