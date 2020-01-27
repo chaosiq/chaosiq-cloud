@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import pytest
+from unittest.mock import patch
 
 from chaoscloud.verify.exceptions import InvalidVerification
 from chaoscloud.verify.verification import (
     build_measurements_experiment,
     ensure_verification_is_valid,
-    has_steady_state_hypothesis_with_probes)
+    has_steady_state_hypothesis_with_probes,
+    run_verification)
 from fixtures.verifications import (
     ExperimentWithCompleteVerification,
     ExperimentWithNoSteadyStateHypothesis,
@@ -56,6 +58,13 @@ def test_verification_without_frequency_is_invalid():
             ExperimentWithoutMeasurementFrequency)
     assert "a verification must have a frequency-of-measurement block" in \
         str(exc.value)
+
+
+@patch('chaoscloud.verify.verification.run_experiment')
+def test_run_verification(run_measurement):
+    run_verification(ExperimentWithCompleteVerification)
+    assert run_measurement.called
+    assert run_measurement.call_count == 5
 
 
 def test_verification_without_conditions_duration_is_invalid():

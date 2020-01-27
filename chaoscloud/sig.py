@@ -1,4 +1,5 @@
 import signal
+import threading
 from typing import Any, NoReturn
 
 from chaoslib.exceptions import InterruptExecution
@@ -11,7 +12,8 @@ def register_cleanup_on_forced_exit() -> NoReturn:
     """
     Try to ensure a clean exit on certain signals such as SIGTERM.
     """
-    signal.signal(signal.SIGTERM, interrupt_execution)
+    if threading.current_thread() is threading.main_thread():
+        signal.signal(signal.SIGTERM, interrupt_execution)
 
 
 ###############################################################################
