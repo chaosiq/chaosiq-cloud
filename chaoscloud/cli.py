@@ -10,7 +10,7 @@ from chaoslib.control import load_global_controls
 from chaoslib.exceptions import ChaosException, InvalidSource
 from chaoslib.loader import load_experiment
 from chaoslib.settings import load_settings, save_settings
-from chaostoolkit.cli import cli
+from chaostoolkit.cli import cli, encoder
 from logzero import logger
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -177,6 +177,8 @@ def disable(ctx: click.Context, feature: str):
 
 
 @cli.command()
+@click.option('--journal-path', default="./journal.json",
+              help='Path where to save the journal from the verification.')
 @click.option('--dry', is_flag=True,
               help='Run the verification without executing activities.')
 @click.option('--no-validation', is_flag=True,
@@ -184,7 +186,8 @@ def disable(ctx: click.Context, feature: str):
 @click.argument('source')
 @click.pass_context
 def verify(ctx: click.Context, source: str,
-           dry: bool = False, no_validation: bool = False):
+           journal_path: str = "./journal.json", dry: bool = False,
+           no_validation: bool = False, no_exit: bool = False):
     """Run the verification loaded from SOURCE, either a local file or a
        HTTP resource. SOURCE can be formatted as JSON or YAML."""
 
@@ -209,7 +212,13 @@ def verify(ctx: click.Context, source: str,
 
     verification["dry"] = dry
 
-    run_verification(verification, settings=settings)
+    journal = run_verification(verification, settings=settings)
+
+    with io.open(journal_path, "w") as r:
+        json.dump(
+            journal, r, indent=2, ensure_ascii=False, default=encoder)
+
+    return journal
 
 
 ###############################################################################

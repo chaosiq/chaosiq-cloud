@@ -4,25 +4,23 @@ from typing import Any, Dict, List, NoReturn
 from urllib.parse import urlsplit, urlunsplit
 
 from chaoslib.experiment import initialize_run_journal
-from chaoslib.types import Activity, Configuration, Extension, \
-    Experiment, Hypothesis, Journal, Run, Secrets, Settings
+from chaoslib.types import (Activity, Configuration, Experiment, Extension,
+                            Hypothesis, Journal, Run, Secrets, Settings)
 from logzero import logger
 
 from .api import client_session
+from .api.execution import (initialize_execution, publish_event,
+                            publish_execution, save_ids_to_journal)
 from .api.experiment import publish_experiment
-from .api.execution import initialize_execution, publish_event, \
-    publish_execution, save_ids_to_journal
-from .api.safeguard import is_allowed_to_continue, \
-    set_applied_safeguards_for_execution
+from .api.safeguard import (is_allowed_to_continue,
+                            set_applied_safeguards_for_execution)
+from .extension import remove_sensitive_extension_values, set_extension_value
 from .settings import is_feature_enabled
 from .sig import register_cleanup_on_forced_exit
-from .workspace import initialize_workspace_path, \
-    load_workspace, save_workspace, \
-    get_experiment_metadata_from_workspace, \
-    register_experiment_to_workspace
-from .extension import set_extension_value, \
-    remove_sensitive_extension_values
 from .types import Organizations
+from .workspace import (get_experiment_metadata_from_workspace,
+                        initialize_workspace_path, load_workspace,
+                        register_experiment_to_workspace, save_workspace)
 
 
 def configure_control(experiment: Experiment, settings: Settings,
