@@ -47,7 +47,8 @@ url = 'https://chaosiq.io'
 license = 'Apache License Version 2.0'
 packages = [
     'chaoscloud',
-    'chaoscloud.api'
+    'chaoscloud.api',
+    'chaoscloud.verify'
 ]
 
 needs_pytest = set(['pytest', 'test']).intersection(sys.argv)
