@@ -2,7 +2,17 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.0...HEAD
+
+## [0.7.0][] - 2020-02-05
+
+[0.7.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.6.0...0.7.0
+
+### Added
+
+- The `verify` command for running a [system verification][verification]. [#34][34]
+
+[verification]: https://chaosiq.io/resources/chaos-engineering/from-chaos-to-verification
 
 ## [0.6.0][] - 2020-01-15
 
