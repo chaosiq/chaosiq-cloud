@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from typing import NoReturn, Optional
 
+import requests
 from chaoslib.types import Experiment
 from logzero import logger
-import requests
 
-from . import urls
 from ..extension import remove_sensitive_extension_values
+from . import urls
 
 __all__ = ["publish_experiment"]
 
@@ -26,7 +26,7 @@ def publish_experiment(session: requests.Session,
     except Exception:
         logger.warning(
             "Failed to publish experiment to '{}'".format(experiment_url))
-        logger.debug("Failed to publish the experiment", exc_info=True)
+        logger.info("Failed to publish the experiment", exc_info=True)
         return
 
     if r.status_code > 399:
@@ -34,7 +34,7 @@ def publish_experiment(session: requests.Session,
         error = r.json() if is_json else r.text
         logger.warning("Experiment failed to be published: {}".format(error))
     elif r.status_code == 204:
-        logger.debug("Experiment has not changed since it was created")
+        logger.info("Experiment has not changed since it was created")
         return r
     else:
         payload = r.json()

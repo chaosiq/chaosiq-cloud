@@ -285,65 +285,6 @@ ExperimentWithoutConditionsDuration = {
 }
 
 
-ExperimentWithNoSteadyStateHypothesis = {
-    "version": "1.0.0",
-    "title": "Verify something important to me!",
-    "description": "Verifies an SLO under some conditions",
-    "contributions": {
-        "availability": "high",
-        "reliability": "high",
-        "safety": "none",
-        "security": "none",
-        "performability": "medium"
-    },
-    "extensions": [
-        {
-            "name": "chaosiq",
-            "verification": {
-                "id": "SOME_GUID",
-                "warm-up-duration": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 1,
-                    "seconds": 0
-                },
-                "frequency-of-measurement": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 1,
-                    "seconds": 0
-                },
-                "duration-of-conditions": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 30,
-                    "seconds": 0
-                },
-                "cool-down-duration": {
-                    "days": 0,
-                    "hours": 0,
-                    "minutes": 1,
-                    "seconds": 0
-                }
-            }
-        }
-    ],
-    "method": [
-        {
-            "type": "probe",
-            "name": "application-must-respond-normally",
-            "tolerance": 200,
-            "provider": {
-                "type": "http",
-                "url": "http://blah.com",
-                "timeout": 3
-            }
-        }
-    ],
-    "rollbacks": []
-}
-
-
 ExperimentWithNoSteadyStateHypothesisProbes = {
     "version": "1.0.0",
     "title": "Verify something important to me!",

@@ -1,24 +1,23 @@
 # -*- coding: utf-8 -*-
+import uuid
 from datetime import datetime
 from typing import Any, List, NoReturn, Optional
-import uuid
 
-from chaoslib.types import Configuration, Experiment, Extension, Journal, \
-    Secrets, Settings
+import pytz
+import simplejson as json
+from chaoslib.types import (Configuration, Experiment, Extension, Journal,
+                            Secrets, Settings)
 from chaostoolkit import encoder as json_encoder
-from cloudevents.sdk import converters
-from cloudevents.sdk import marshaller
+from cloudevents.sdk import converters, marshaller
 from cloudevents.sdk.converters import structured
 from cloudevents.sdk.event import v02
 from logzero import logger
-import pytz
 from requests import Response, Session
-import simplejson as json
 from tzlocal import get_localzone
 
-from . import urls, get_chaosiq_extension_from_journal, get_experiment_id, \
-    get_execution_id, set_execution_id
 from ..extension import remove_sensitive_extension_values
+from . import (get_chaosiq_extension_from_journal, get_execution_id,
+               get_experiment_id, set_execution_id, urls)
 
 __all__ = ["publish_event", "initialize_execution", "publish_execution",
            "fetch_execution"]
@@ -31,7 +30,7 @@ def initialize_execution(session: Session, experiment: Experiment,
     """
     experiment_id = get_experiment_id(experiment.get('extensions'))
     if not experiment_id:
-        logger.debug("Missing experiment identifier")
+        logger.info("Missing experiment identifier")
         return
 
     journal["experiment"] = experiment
@@ -51,7 +50,6 @@ def initialize_execution(session: Session, experiment: Experiment,
     except Exception:
         logger.debug("Failed to create execution", exc_info=True)
         return
-
     if r.status_code not in [200, 201]:
         is_json = 'application/json' in r.headers.get("content-type", '')
         error = r.json() if is_json else r.text
