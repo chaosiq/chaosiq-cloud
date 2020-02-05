@@ -29,7 +29,7 @@ $ pip install -U chaosiq-cloud
 
 ## Usage
 
-Once installed, `signin`, `org`, `publish`, `enable` and `disable` will be added
+Once installed, `signin`, `org`, `publish`, `enable`, `disable`, `team` and `verify` will be added
 to the `chaos` command.
 
 ```console
@@ -60,7 +60,9 @@ Commands:
   publish   Publish your experiment's journal to ChaosIQ
   run       Run the experiment loaded from SOURCE, either a local file or a...
   signin    Sign-in with your ChaosIQ credentials
+  team      Set ChaosIQ team
   validate  Validate the experiment at PATH.
+  verify    Run the verification loaded from SOURCE, either a local file or...
 ```
 
 ### Sign-in with ChaosIQ
@@ -157,7 +159,7 @@ $ chaos enable safeguards
 
 ### Disable publishing experiments and executions
 
-If you need to disable publishing for a little whie
+If you need to disable publishing for a little while:
 
 ```console
 $ chaos disable publish
@@ -170,6 +172,40 @@ Obviously, run the mirroring command to enable publishing again:
 ```console
 $ chaos enable publish
 ```
+
+### Run a system verification
+
+A system verification is a chaos experiment with an extension block added such as the following:
+
+```javascript
+...
+
+  "extensions": [
+        {
+            "name": "chaosiq",
+            "verification": {
+                "id": "SOME_GUID",
+                "warm-up-duration": 2,
+                "frequency-of-measurement": 2,
+                "duration-of-conditions": 10,
+                "cool-down-duration": 2
+            }
+        }
+    ],
+...
+
+```
+
+Typically you would create a verification in your [ChaosIQ console][console]. You can execute a verification in exactly the same way as the [`chaos run`][run] default command in the Chaos Toolkit, but instead of `chaos run` you will use `chaos verify`:
+
+[console]: https://console.chaosiq.io
+[run]: https://docs.chaostoolkit.org/reference/usage/run/
+
+```console
+$ chaos verify my-excellent-verification.json
+```
+
+As with Chaos Toolkit experiments, system verifications may be specified in JSON or YAML formats.
 
 ## Contribute
 
