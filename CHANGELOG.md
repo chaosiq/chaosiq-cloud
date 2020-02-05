@@ -2,7 +2,17 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.0...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.1...HEAD
+
+## [0.7.1][] - 2020-02-05
+
+[0.7.1]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.0...0.7.1
+
+### Fixed
+
+- Included the `chaoscloud.verify` package.
+
+[verification]: https://chaosiq.io/resources/chaos-engineering/from-chaos-to-verification
 
 ## [0.7.0][] - 2020-02-05
 
