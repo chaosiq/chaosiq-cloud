@@ -48,7 +48,9 @@ license = 'Apache License Version 2.0'
 packages = [
     'chaoscloud',
     'chaoscloud.api',
-    'chaoscloud.verify'
+    'chaoscloud.verify',
+    'chaoscloud.probes',
+    'chaoscloud.tolerances'
 ]
 
 needs_pytest = set(['pytest', 'test']).intersection(sys.argv)

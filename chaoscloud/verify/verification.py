@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 import platform
 import threading
 import time
@@ -211,7 +212,7 @@ def run_measurements_experiment(stop_measurements_event: threading.Event,
             "Running verification measurement {}"
             .format(measurements_count))
         state = run_steady_state_hypothesis(
-            experiment, config, secrets, dry=dry)
+            deepcopy(experiment), config, secrets, dry=dry)
         journal["measurements"].append(state)
         time.sleep(frequency)
 
