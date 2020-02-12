@@ -4,11 +4,16 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.1...HEAD
 
+### Added
+
+- Added first tolerances
+- Added first probes
+
 ## [0.7.1][] - 2020-02-05
 
 [0.7.1]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.0...0.7.1
 
-### Fixed
+### Changed
 
 - Included the `chaoscloud.verify` package.
 
