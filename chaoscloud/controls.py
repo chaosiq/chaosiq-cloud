@@ -14,6 +14,7 @@ from .api.execution import (initialize_execution, publish_event,
 from .api.experiment import publish_experiment
 from .api.safeguard import (is_allowed_to_continue,
                             set_applied_safeguards_for_execution)
+from .api.verification import get_run_id
 from .extension import remove_sensitive_extension_values, set_extension_value
 from .settings import is_feature_enabled
 from .sig import register_cleanup_on_forced_exit
@@ -42,13 +43,18 @@ def configure_control(experiment: Experiment, settings: Settings,
             "Run `chaos enable publish` to activate the extension again.")
         return
 
-    with remove_sensitive_extension_values(experiment, ["experiment_path"]):
-        journal = initialize_run_journal(experiment)
+    is_in_verification = get_run_id(experiment) is not None
+    # when running a verification the experiment/execution have been
+    # initialized already
+    if not is_in_verification:
+        with remove_sensitive_extension_values(
+                experiment, ["experiment_path"]):
+            journal = initialize_run_journal(experiment)
 
-    with client_session(url, organizations, verify_tls, settings) as \
-            session:
-        publish_experiment(session, experiment)
-        initialize_execution(session, experiment, journal)
+        with client_session(url, organizations, verify_tls, settings) as \
+                session:
+            publish_experiment(session, experiment)
+            initialize_execution(session, experiment, journal)
 
     if is_feature_enabled(settings, "workspace"):
         register_experiment_to_workspace(experiment, organizations)

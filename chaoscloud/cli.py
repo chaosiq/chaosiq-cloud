@@ -10,6 +10,7 @@ from chaoslib.control import load_global_controls
 from chaoslib.exceptions import ChaosException, InvalidSource
 from chaoslib.loader import load_experiment
 from chaoslib.settings import load_settings, save_settings
+from chaoslib.types import Settings
 from chaostoolkit.cli import cli, encoder
 from logzero import logger
 from urllib3.exceptions import InsecureRequestWarning
@@ -22,8 +23,8 @@ from .api.ssl import verify_ssl_certificate
 from .api.team import request_teams
 from .settings import (FEATURES, disable_feature, enable_feature,
                        get_auth_token, get_default_org, get_endpoint_url,
-                       get_orgs, get_verify_tls, set_settings,
-                       verify_tls_certs)
+                       get_orgs, get_verify_tls, set_default_team,
+                       set_settings, verify_tls_certs)
 from .verify.verification import ensure_verification_is_valid, run_verification
 
 __all__ = ["signin", "publish", "org", "enable", "disable", "team", "verify"]
@@ -195,6 +196,9 @@ def verify(ctx: click.Context, source: str,
     load_global_controls(settings)
 
     try:
+        if not switch_team_during_verification_run(source, settings):
+            ctx.exit(1)
+
         verification = load_experiment(
             click.format_filename(source), settings)
     except InvalidSource as x:
@@ -394,3 +398,52 @@ def select_team(url: str, token: str, org: Dict[str, Any],
                 click.style(org['name'], fg='blue')))
 
     return default_team
+
+
+def switch_team_during_verification_run(source: str,
+                                        settings: Settings) -> bool:
+    p = urlparse(source)
+    if p.scheme.lower() in ["http", "https"]:
+        verify_tls = get_verify_tls(settings)
+        org = get_default_org(settings)
+        token = get_auth_token(settings, source)
+        teams_url = urls.team(
+            urls.org(urls.base(
+                get_endpoint_url(settings)), organization_id=org["id"]))
+        r = request_teams(teams_url, token, verify_tls)
+        if r.status_code == 200:
+            verification_team = None
+            segments = p.path.split("/")
+            e = enumerate(segments)
+            for index, segment in e:
+                if p.path.startswith("/api/v1") and segment == "teams":
+                    # using the team id
+                    verification_team = next(e)[-1]
+                    break
+                elif not p.path.startswith("/api/v1") and index == 2:
+                    # using the team name
+                    verification_team = segment
+                    break
+            team = None
+            teams = r.json()
+            for team in teams:
+                if team["id"] == verification_team or \
+                        team["name"] == verification_team:
+                    break
+
+            if not team:
+                logger.fatal(
+                    "Could not locate any team '{}' in organization "
+                    "'{}'. We must abort this verification run.".format(
+                        verification_team, org["name"]))
+                return False
+            else:
+                logger.debug(
+                    "Running a verification in a team different from the "
+                    "active one. Switching to '{}' for this run.".format(
+                        team["name"]
+                    )
+                )
+                set_default_team(org, team)
+
+    return True

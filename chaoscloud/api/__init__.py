@@ -45,11 +45,19 @@ def client_session(url: str, organizations: List[Dict[str, str]],
                 auth_type.capitalize(), token)
 
     with Session() as s:
-        s.base_url = urls.team(
-            urls.org(urls.base(url), organization_id=org_id), team_id=team_id)
+        s.base_url = build_base_url(url, org_id, team_id)
         s.headers.update(headers)
         s.verify = verify_tls
         yield s
+
+
+def build_base_url(url: str, org_id: str, team_id: str) -> str:
+    """
+    Returns the absolute URL to the given team with its organization segment.
+    """
+    return urls.team(
+            urls.org(
+                urls.base(url), organization_id=org_id), team_id=team_id)
 
 
 def get_default_org(organizations: List[Dict[str, str]]) -> Dict[str, Any]:

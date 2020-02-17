@@ -22,7 +22,8 @@ from chaoslib.types import (Configuration, Experiment, Journal, Secrets,
                             Settings)
 from logzero import logger
 
-from chaoscloud.verify.exceptions import InvalidVerification
+from ..api.verification import verification_run, VerificationRunEventHandler
+from .exceptions import InvalidVerification
 
 __all__ = ["ensure_verification_is_valid", "run_verification"]
 
@@ -71,118 +72,148 @@ def ensure_verification_is_valid(experiment: Experiment):
 @with_cache
 def run_verification(experiment: Experiment,
                      settings: Settings = None) -> Journal:
-    logger.info("Running verification: {t}".format(t=experiment["title"]))
-
-    dry = experiment.get("dry", False)
-    if dry:
-        logger.warning("Dry mode enabled")
-
-    started_at = time.time()
-    settings = settings if settings is not None else get_loaded_settings()
-    config = load_configuration(experiment.get("configuration", {}))
-    secrets = load_secrets(experiment.get("secrets", {}), config)
-    initialize_global_controls(experiment, config, secrets, settings)
-    initialize_controls(experiment, config, secrets)
-    activity_pool, rollback_pool = get_background_pools(experiment)
-
-    control = Control()
-    journal = initialize_verification_run_journal(experiment)
-
-    try:
+    with verification_run(experiment, settings) as run:
+        journal = initialize_verification_run_journal(experiment)
         try:
-            control.begin(
-                "experiment", experiment, experiment, config, secrets)
-
-            extensions = experiment.get("extensions")
-            chaosiq_blocks = list(filter(
-                lambda extension: extension.get("name", "") == "chaosiq",
-                extensions))
-            verification = chaosiq_blocks[0].get("verification")
-            frequency = verification.get("frequency-of-measurement")
-
-            stop_measurements_event = threading.Event()
-            measurements_thread = threading.Thread(
-                target=run_measurements_experiment,
-                args=(stop_measurements_event, experiment, frequency,
-                      settings, config, secrets, journal, dry))
-            measurements_thread.start()
-
-            warm_up_duration = verification.get("warm-up-duration")
-            logger.info("Starting verification warm-up period of {} seconds"
-                        .format(warm_up_duration))
-            pause_for_duration(warm_up_duration)
-            logger.info("Finished verification warm-up")
-
-            logger.info("Triggering verification conditions")
-            try:
-                journal["run"] = apply_activities(
-                    experiment, config, secrets, activity_pool, dry)
-            except InterruptExecution:
-                raise
-            except Exception:
-                journal["status"] = "aborted"
-                logger.fatal(
-                    "Verification ran into an unexpected fatal error, "
-                    "aborting now.", exc_info=True)
-            logger.info("Finished triggering verification conditions")
-
-            duration_of_conditions = verification.get("duration-of-conditions")
-            logger.info("Starting verification conditions for {} seconds"
-                        .format(duration_of_conditions))
-            pause_for_duration(duration_of_conditions)
-            logger.info("Finished verification conditions duration")
-
-            cool_down_duration = verification.get("cool-down-duration")
-            logger.info("Starting verification cool-down period of {} seconds"
-                        .format(cool_down_duration))
-            pause_for_duration(cool_down_duration)
-            logger.info("Finished verification cool-down period"
-                        .format(t=experiment["title"]))
+            run_id = run.start(journal)
         except InterruptExecution as i:
-            journal["status"] = "interrupted"
             logger.fatal(str(i))
-            stop_measurements_event.set()
-            measurements_thread.join()
-        except (KeyboardInterrupt, SystemExit):
-            journal["status"] = "interrupted"
-            logger.warning("Received an exit signal, "
-                           "leaving without applying rollbacks.")
-            stop_measurements_event.set()
-            measurements_thread.join()
+            return
+
+        if run_id:
+            logger.info("Started run '{r}' of verification '{t}'".format(
+                r=run_id, t=experiment["title"]))
         else:
-            stop_measurements_event.set()
-            measurements_thread.join()
-            journal["status"] = journal["status"] or "completed"
-            logger.info("Triggering any verification rollbacks")
+            logger.warning(
+                "As we failed to declare this run to ChaosIQ, the "
+                "verification will carry on but will not be reported.")
+
+        dry = experiment.get("dry", False)
+        if dry:
+            logger.warning("Dry mode enabled")
+
+        started_at = time.time()
+        settings = settings if settings is not None else get_loaded_settings()
+        config = load_configuration(experiment.get("configuration", {}))
+        secrets = load_secrets(experiment.get("secrets", {}), config)
+        initialize_global_controls(experiment, config, secrets, settings)
+        initialize_controls(experiment, config, secrets)
+        activity_pool, rollback_pool = get_background_pools(experiment)
+
+        control = Control()
+
+        try:
             try:
-                journal["rollbacks"] = apply_rollbacks(
-                    experiment, config, secrets, rollback_pool, dry)
+                control.begin(
+                    "experiment", experiment, experiment, config, secrets)
+
+                extensions = experiment.get("extensions")
+                chaosiq_blocks = list(filter(
+                    lambda extension: extension.get("name", "") == "chaosiq",
+                    extensions))
+                verification = chaosiq_blocks[0].get("verification")
+                frequency = verification.get("frequency-of-measurement")
+
+                stop_measurements_event = threading.Event()
+                measurements_thread = threading.Thread(
+                    target=run_measurements_experiment,
+                    args=(
+                        stop_measurements_event, experiment, frequency,
+                        settings, config, secrets, journal, run, dry)
+                    )
+                measurements_thread.start()
+
+                warm_up_duration = verification.get("warm-up-duration")
+                logger.info(
+                    "Starting verification warm-up period of {} "
+                    "seconds".format(warm_up_duration))
+                pause_for_duration(warm_up_duration)
+                logger.info("Finished verification warm-up")
+
+                logger.info("Triggering verification conditions")
+                try:
+                    run.start_condition()
+                    state = apply_activities(
+                        experiment, config, secrets, activity_pool, dry)
+                    journal["run"] = state
+                    run.condition_completed(state)
+                except InterruptExecution:
+                    raise
+                except Exception:
+                    journal["status"] = "aborted"
+                    logger.fatal(
+                        "Verification ran into an unexpected fatal error, "
+                        "aborting now.", exc_info=True)
+                logger.info("Finished triggering verification conditions")
+
+                duration_of_conditions = verification.get(
+                    "duration-of-conditions")
+                logger.info("Starting verification conditions for {} seconds"
+                            .format(duration_of_conditions))
+                pause_for_duration(duration_of_conditions)
+                logger.info("Finished verification conditions duration")
+
+                cool_down_duration = verification.get("cool-down-duration")
+                logger.info(
+                    "Starting verification cool-down period of "
+                    "{} seconds".format(cool_down_duration))
+                run.start_cooldown(cool_down_duration)
+                pause_for_duration(cool_down_duration)
+                run.cooldown_completed()
+                logger.info("Finished verification cool-down period"
+                            .format(t=experiment["title"]))
             except InterruptExecution as i:
+                run.interrupt()
                 journal["status"] = "interrupted"
                 logger.fatal(str(i))
+                stop_measurements_event.set()
+                measurements_thread.join()
             except (KeyboardInterrupt, SystemExit):
+                run.signal_exit()
                 journal["status"] = "interrupted"
                 logger.warning(
-                    "Received an exit signal."
-                    "Terminating now without running the remaining rollbacks.")
+                    "Received an exit signal, "
+                    "leaving without applying rollbacks.")
+                stop_measurements_event.set()
+                measurements_thread.join()
+            else:
+                stop_measurements_event.set()
+                measurements_thread.join()
+                journal["status"] = journal["status"] or "completed"
+                logger.info("Triggering any verification rollbacks")
+                try:
+                    journal["rollbacks"] = apply_rollbacks(
+                        experiment, config, secrets, rollback_pool, dry)
+                except InterruptExecution as i:
+                    journal["status"] = "interrupted"
+                    logger.fatal(str(i))
+                except (KeyboardInterrupt, SystemExit):
+                    journal["status"] = "interrupted"
+                    logger.warning(
+                        "Received an exit signal."
+                        "Terminating now without running the remaining "
+                        "rollbacks.")
+                logger.info(
+                    "Finished triggering any verification rollbacks")
+            journal["end"] = datetime.utcnow().isoformat()
+            journal["duration"] = time.time() - started_at
+
+            control.with_state(journal)
+
+            try:
+                control.end(
+                    "experiment", experiment, experiment, config, secrets)
+            except ChaosException:
+                logger.debug("Failed to close controls", exc_info=True)
+
             logger.info(
-                "Finished triggering any verification rollbacks")
-        journal["end"] = datetime.utcnow().isoformat()
-        journal["duration"] = time.time() - started_at
+                "Finished running verification: {}".format(
+                    experiment["title"]))
+        finally:
+            cleanup_controls(experiment)
+            cleanup_global_controls()
 
-        control.with_state(journal)
-
-        try:
-            control.end("experiment", experiment, experiment, config, secrets)
-        except ChaosException:
-            logger.debug("Failed to close controls", exc_info=True)
-
-        logger.info(
-            "Finished running verification: {}".format(experiment["title"]))
-    finally:
-        cleanup_controls(experiment)
-        cleanup_global_controls()
-
+        run.finish(journal)
     return journal
 
 
@@ -202,7 +233,10 @@ def run_measurements_experiment(stop_measurements_event: threading.Event,
                                 experiment: Experiment,
                                 frequency: int, settings: Settings,
                                 config: Configuration, secrets: Secrets,
-                                journal: Journal, dry):
+                                journal: Journal,
+                                run_event_handler: VerificationRunEventHandler,
+                                dry: bool = False):
+    run_event_handler.start_measurements(frequency)
     measurements_count = 0
     logger.info("Starting verification measurement every {} seconds"
                 .format(frequency))
@@ -213,9 +247,11 @@ def run_measurements_experiment(stop_measurements_event: threading.Event,
             .format(measurements_count))
         state = run_steady_state_hypothesis(
             deepcopy(experiment), config, secrets, dry=dry)
+        run_event_handler.measurement_sample(measurements_count, state)
         journal["measurements"].append(state)
         time.sleep(frequency)
 
+    run_event_handler.measurements_completed()
     logger.info("Stopping verification measurements. {} measurements taken"
                 .format(measurements_count))
 

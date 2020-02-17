@@ -55,8 +55,9 @@ def initialize_execution(session: Session, experiment: Experiment,
         error = r.json() if is_json else r.text
         logger.warning("Execution failed to be published: {}".format(error))
     else:
-        logger.info("Execution available at {}".format(
-            urls.clean(r.headers["Content-Location"])))
+        logger.info(
+            "Execution available at {}".format(
+                urls.clean(r.headers["Content-Location"])))
         payload = r.json()
         set_execution_id(payload["id"], experiment)
 

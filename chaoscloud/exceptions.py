@@ -3,8 +3,12 @@
 from chaoslib.exceptions import ChaosException
 
 
-__all__ = ["WorkspaceException"]
+__all__ = ["WorkspaceException", "MissingVerificationIdentifier"]
 
 
 class WorkspaceException(ChaosException):
+    pass
+
+
+class MissingVerificationIdentifier(ChaosException):
     pass
