@@ -26,7 +26,9 @@ def publish_experiment(session: requests.Session,
     except Exception:
         logger.warning(
             "Failed to publish experiment to '{}'".format(experiment_url))
-        logger.info("Failed to publish the experiment", exc_info=True)
+        logger.debug(
+            "Failed to publish experiment to '{}'".format(experiment_url),
+            exc_info=True)
         return
 
     if r.status_code > 399:
