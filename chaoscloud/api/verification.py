@@ -137,7 +137,7 @@ class VerificationRunEventHandler:
             if r.status_code not in [200, 201]:
                 raise InterruptExecution(
                     "It is possible you are trying to run a verification "
-                    "against a team that is not the active team of the `chaos`"
+                    "against a team that is not the active team of the `chaos` "
                     "session. Please run `chaos team` to switch active team "
                     "then try again. If the problem persists or the team is "
                     "the correct one, please contact the ChaosIQ support.")
