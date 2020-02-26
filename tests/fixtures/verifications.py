@@ -436,6 +436,9 @@ ExperimentWithCompleteVerification = {
     "extensions": [
         {
             "name": "chaosiq",
+            "verification_id": "9d9b8854-9bc0-4b64-873c-65ddabb0e5f8",
+            "experiment_id": "25fe4625-ab86-4db1-8f0c-e48ed7db402e",
+            "execution_id": "0e0c725b-597a-4740-a55f-23d71966ab5d",
             "verification": {
                 "id": "SOME_GUID",
                 "warm-up-duration": 2,

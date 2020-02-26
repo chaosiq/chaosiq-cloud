@@ -4,6 +4,10 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.8.0...HEAD
 
+### Added
+
+-  Send events during verification run
+
 ## [0.8.0][] - 2020-02-17
 
 [0.8.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.7.1...0.8.0

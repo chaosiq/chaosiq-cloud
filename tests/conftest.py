@@ -4,6 +4,10 @@ from typing import Any, Dict, List
 
 import pytest
 
+from chaoscloud.api import urls
+
+ENDPOINT = "https://chaosiq.io"
+
 
 @pytest.fixture
 def default_org_id() -> str:
@@ -60,3 +64,44 @@ def settings() -> Dict[str, Any]:
 def log_file():
     with tempfile.NamedTemporaryFile() as f:
         yield f
+
+
+@pytest.fixture
+def base_team_url(default_org_id: str, default_team_id: str) -> str:
+    return urls.full(
+        urls.base(ENDPOINT), default_org_id, default_team_id)
+
+
+@pytest.fixture
+def default_settings(default_org_id: str,
+                     default_team_id: str) -> Dict[str, Any]:
+    return {
+        "controls": {
+            "chaosiq-cloud": {
+                "features": {
+                    "publish": 'on',
+                    "safeguards": 'on',
+                    "workspace": 'on'
+                },
+                "provider": {
+                    "arguments": {
+                        "url": ENDPOINT,
+                        "organizations": [
+                           {
+                                "default": True,
+                                "id": default_org_id,
+                                "name": "Super Org",
+                                "teams": [
+                                    {
+                                        "default": True,
+                                        "id": default_team_id,
+                                        "name": "Super Team"
+                                    }
+                                ]
+                           }
+                        ]
+                    }
+                }
+            }
+        }
+    }

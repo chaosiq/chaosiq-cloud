@@ -1,7 +1,8 @@
 from urllib.parse import urlparse
 
 __all__ = ["base", "experiment", "execution", "clean", "safeguard", "host",
-           "org", "full", "team"]
+           "org", "full", "team", "verification", "verification_run",
+           "verification_run_events"]
 
 
 def base(base_url: str) -> str:
@@ -61,6 +62,32 @@ def safeguard(base_execution_url: str) -> str:
     return '/'.join([base_execution_url, 'policies'])
 
 
+def verification(base_url: str, verification_id: str = None) -> str:
+    """
+    Build the URL to communicate with the verification API.
+    """
+    if not verification_id:
+        return '/'.join([base_url, 'verifications'])
+    return '/'.join([base_url, 'verifications', verification_id])
+
+
+def verification_run(base_verification_url: str,
+                     verification_run_id: str = None) -> str:
+    """
+    Build the URL to communicate with the verification run API.
+    """
+    if not verification_run_id:
+        return '/'.join([base_verification_url, 'runs'])
+    return '/'.join([base_verification_url, 'runs', verification_run_id])
+
+
+def verification_run_events(base_verification_run_url: str) -> str:
+    """
+    Build the URL to communicate with the verification run event API.
+    """
+    return '/'.join([base_verification_run_url, 'events'])
+
+
 def clean(url: str) -> str:
     """
     Transforms the actual resource URL to something users can go fetch.
@@ -78,9 +105,13 @@ def host(url: str) -> str:
 
 
 def full(base: str, org_id: str, team_id: str, experiment_id: str = None,
-         execution_id: str = None, with_experiments: bool = False,
+         execution_id: str = None, verification_id: str = None,
+         verification_run_id: str = None,
+         with_experiments: bool = False,
          with_executions: bool = False, with_events: bool = False,
-         with_safeguards: bool = False) -> str:
+         with_safeguards: bool = False, with_verifications: bool = False,
+         with_verification_runs: bool = False,
+         with_verification_run_events: bool = False) -> str:
     """
     Build the appropriate url for various resources.
 
@@ -96,6 +127,16 @@ def full(base: str, org_id: str, team_id: str, experiment_id: str = None,
       will give `base/organizations/org_id/teams/team_id/experiments/experiment_id/executions/execution_id/events`
     * `with_safeguards` set
       will give `base/organizations/org_id/teams/team_id/policies`
+    * `verification_id` set to `None`  but `with_verifications`  set to `True`
+      will give `base/organizations/org_id/teams/team_id/verifications`
+    * `verification_id` set
+      will give `base/organizations/org_id/teams/team_id/verifications/verification_id`
+    * `verification_run_id` set to `None`  but `with_verification_runs`  set to `True`
+      will give `base/organizations/org_id/teams/team_id/verifications/verification_id/runs`
+    * `verification_run_id` set
+      will give `base/organizations/org_id/teams/team_id/verifications/verification_id/runs/verification_run_id`
+    * `with_verification_run_events` set to `True`
+      will give `base/organizations/org_id/teams/team_id/verifications/verification_id/runs/verification_run_id/events`
     """  # noqa: E501
     url = team(org(base, org_id), team_id)
     if with_experiments or experiment_id:
@@ -106,4 +147,11 @@ def full(base: str, org_id: str, team_id: str, experiment_id: str = None,
                 url = event(url)
     if with_safeguards:
         url = safeguard(url)
+    if with_verifications or verification_id:
+        url = verification(url, verification_id=verification_id)
+        if with_verification_runs or verification_run_id:
+            url = verification_run(
+                url, verification_run_id=verification_run_id)
+            if with_verification_run_events:
+                url = verification_run_events(url)
     return url
