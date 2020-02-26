@@ -420,6 +420,11 @@ def switch_team_during_verification_run(source: str,
     verify_tls = get_verify_tls(settings)
     default_org = get_default_org(settings)
     team = get_default_team(default_org)
+    if not team:
+        logger.fatal("Please select a default team with `$chaos team`")
+        return False
+    team_id = team["id"]
+
     token = get_auth_token(settings, base_url)
     if not token:
         logger.fatal(

@@ -2,7 +2,15 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.1...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.2...HEAD
+
+## [0.9.2][] - 2020-02-26
+
+[0.9.2]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.1...0.9.2
+
+### Changed
+
+-  Use default selected team when none found in the verification file
 
 ## [0.9.1][] - 2020-02-26
 
