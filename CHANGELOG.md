@@ -2,7 +2,15 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.2...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.3...HEAD
+
+## [0.9.3][] - 2020-02-26
+
+[0.9.3]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.2...0.9.3
+
+### Changed
+
+-  Do not override default team id when none is found in the experiment
 
 ## [0.9.2][] - 2020-02-26
 

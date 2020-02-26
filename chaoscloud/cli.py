@@ -444,12 +444,16 @@ def switch_team_during_verification_run(source: str,  # noqa: C901
             return False
 
         experiment = r.json()
-        team_id = get_team_id(experiment)
+        experiment_team_id = get_team_id(experiment)
+        if experiment_team_id:
+            team_id = experiment_team_id
     else:
         if not os.path.exists(p.path):
             raise InvalidSource('Path "{}" does not exist.'.format(source))
         experiment = parse_experiment_from_file(source)
-        team_id = get_team_id(experiment)
+        experiment_team_id = get_team_id(experiment)
+        if experiment_team_id:
+            team_id = experiment_team_id
 
     if not team_id:
         logger.fatal(
