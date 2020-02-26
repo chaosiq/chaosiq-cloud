@@ -402,7 +402,7 @@ def select_team(url: str, token: str, org: Dict[str, Any],
     return default_team
 
 
-def switch_team_during_verification_run(source: str,
+def switch_team_during_verification_run(source: str,  # noqa: C901
                                         settings: Settings) -> bool:
     """
     Verification may be run in a different team than the active team the user
