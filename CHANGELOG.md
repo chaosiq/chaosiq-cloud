@@ -2,7 +2,11 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.8.0...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.0...HEAD
+
+## [0.9.0][] - 2020-02-26
+
+[0.9.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.8.0...0.9.0
 
 ### Added
 
