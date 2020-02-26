@@ -101,7 +101,7 @@ def run_verification(experiment: Experiment,
         activity_pool, rollback_pool = get_background_pools(experiment)
 
         control = Control()
-
+        stop_measurements_event = threading.Event()
         try:
             try:
                 control.begin(
@@ -114,7 +114,6 @@ def run_verification(experiment: Experiment,
                 verification = chaosiq_blocks[0].get("verification")
                 frequency = verification.get("frequency-of-measurement")
 
-                stop_measurements_event = threading.Event()
                 measurements_thread = threading.Thread(
                     target=run_measurements_experiment,
                     args=(
