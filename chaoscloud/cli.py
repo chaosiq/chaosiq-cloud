@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import io
+import os.path
 from typing import Any, Dict
 from urllib.parse import urlparse
 
@@ -8,9 +9,9 @@ import requests
 import simplejson as json
 from chaoslib.control import load_global_controls
 from chaoslib.exceptions import ChaosException, InvalidSource
-from chaoslib.loader import load_experiment
+from chaoslib.loader import load_experiment, parse_experiment_from_file
 from chaoslib.settings import load_settings, save_settings
-from chaoslib.types import Settings
+from chaoslib.types import Experiment, Settings
 from chaostoolkit.cli import cli, encoder
 from logzero import logger
 from urllib3.exceptions import InsecureRequestWarning
@@ -20,11 +21,12 @@ from .api.execution import fetch_execution, initialize_execution
 from .api.experiment import publish_experiment
 from .api.organization import request_orgs
 from .api.ssl import verify_ssl_certificate
-from .api.team import request_teams
+from .api.team import request_team, request_teams
 from .settings import (FEATURES, disable_feature, enable_feature,
                        get_auth_token, get_default_org, get_endpoint_url,
                        get_orgs, get_verify_tls, set_default_team,
-                       set_settings, verify_tls_certs)
+                       set_settings, verify_tls_certs, get_default_team,
+                       has_chaosiq_extension_configured)
 from .verify.verification import ensure_verification_is_valid, run_verification
 
 __all__ = ["signin", "publish", "org", "enable", "disable", "team", "verify"]
@@ -402,48 +404,99 @@ def select_team(url: str, token: str, org: Dict[str, Any],
 
 def switch_team_during_verification_run(source: str,
                                         settings: Settings) -> bool:
+    """
+    Verification may be run in a different team than the active team the user
+    selected. Rather than preventing the verification from running, try to
+    switch to the appropriate team's context for the duration of this run.
+
+    It's all in memory and not changed on disk.
+    """
+    if not has_chaosiq_extension_configured(settings):
+        logger.fatal(
+            "Please signin to ChaosIQ services first with `$ chaos signin`")
+        return False
+
+    base_url = get_endpoint_url(settings)
+    verify_tls = get_verify_tls(settings)
+    default_org = get_default_org(settings)
+    team = get_default_team(default_org)
+    token = get_auth_token(settings, base_url)
+    if not token:
+        logger.fatal(
+            "Please signin to ChaosIQ services first with `$ chaos signin`")
+
     p = urlparse(source)
     if p.scheme.lower() in ["http", "https"]:
-        verify_tls = get_verify_tls(settings)
-        org = get_default_org(settings)
-        token = get_auth_token(settings, source)
-        teams_url = urls.team(
-            urls.org(urls.base(
-                get_endpoint_url(settings)), organization_id=org["id"]))
-        r = request_teams(teams_url, token, verify_tls)
-        if r.status_code == 200:
-            verification_team = None
-            segments = p.path.split("/")
-            e = enumerate(segments)
-            for index, segment in e:
-                if p.path.startswith("/api/v1") and segment == "teams":
-                    # using the team id
-                    verification_team = next(e)[-1]
-                    break
-                elif not p.path.startswith("/api/v1") and index == 2:
-                    # using the team name
-                    verification_team = segment
-                    break
-            team = None
-            teams = r.json()
-            for team in teams:
-                if team["id"] == verification_team or \
-                        team["name"] == verification_team:
-                    break
+        r = requests.get(
+            source, headers={
+                "Authorization": "Bearer {}".format(token)
+            }, verify=verify_tls
+        )
+        if r.status_code != 200:
+            logger.fatal(
+                "Failed to retrieve verification at '{}': {}".format(
+                    source, r.text))
+            return False
 
-            if not team:
-                logger.fatal(
-                    "Could not locate any team '{}' in organization "
-                    "'{}'. We must abort this verification run.".format(
-                        verification_team, org["name"]))
-                return False
-            else:
-                logger.debug(
-                    "Running a verification in a team different from the "
-                    "active one. Switching to '{}' for this run.".format(
-                        team["name"]
-                    )
-                )
-                set_default_team(org, team)
+        experiment = r.json()
+        team_id = get_team_id(experiment)
+    else:
+        if not os.path.exists(p.path):
+            raise InvalidSource('Path "{}" does not exist.'.format(source))
+        experiment = parse_experiment_from_file(source)
+        team_id = get_team_id(experiment)
+
+    if not team_id:
+        logger.fatal(
+            "Failed to lookup the team identifier from the verification. "
+            "Are you trying to run a verification using an experiment you "
+            "created manually? This is not possible right now unfortunately."
+        )
+        return False
+
+    if team["id"] != team_id:
+        team_url = urls.team(
+            urls.org(
+                urls.base(base_url),
+                organization_id=default_org["id"]), team_id=team_id)
+
+        r = request_team(team_url, token, verify_tls)
+        if r.status_code != 200:
+            logger.fatal(
+                "You cannot access the team owning this verification."
+                "Please request them to join the team."
+            )
+            return False
+
+        team = r.json()
+        if default_org["id"] != team["org_id"]:
+            logger.fatal(
+                "You must be signed in to the appropriate organization to run "
+                "this verification. Please run `$ chaos signin`.")
+            return False
+
+        logger.debug(
+            "Running a verification in a team different from the "
+            "active one. Activating '{}' for this run.".format(team["name"]))
+
+        set_default_team(default_org, {
+            "id": team_id,
+            "default": True,
+            "name": team["name"]
+        })
 
     return True
+
+
+def get_team_id(experiment: Experiment) -> str:
+    extensions = experiment.get("extensions", [])
+    for extension in extensions:
+        if extension["name"] == "chaosiq":
+            return extension.get("team_id")
+
+
+def get_org_id(experiment: Experiment) -> str:
+    extensions = experiment.get("extensions", [])
+    for extension in extensions:
+        if extension["name"] == "chaosiq":
+            return extension.get("org_id")

@@ -7,7 +7,8 @@ from chaoslib.types import Control, Settings
 
 __all__ = ["set_settings", "get_endpoint_url",
            "is_feature_enabled", "get_verify_tls", "get_auth_token",
-           "enable_feature", "disable_feature", "FEATURES"]
+           "enable_feature", "disable_feature", "FEATURES",
+           "has_chaosiq_extension_configured"]
 
 
 FEATURES = ['publish', 'safeguards', 'workspace']
@@ -102,6 +103,13 @@ def get_auth_token(settings: Settings, url) -> str:
     for domain in settings['auths']:
         if domain == p.netloc:
             return settings['auths'].get(domain, {}).get("value")
+
+
+def has_chaosiq_extension_configured(settings: Settings) -> bool:
+    """
+    Lookup for the chaosiq control extension.
+    """
+    return settings.get('controls', {}).get('chaosiq-cloud') is not None
 
 
 ###############################################################################

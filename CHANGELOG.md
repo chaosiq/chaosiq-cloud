@@ -2,7 +2,15 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.1...HEAD
+
+## [0.9.1][] - 2020-02-26
+
+[0.9.1]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.0...0.9.1
+
+### Changed
+
+-  Support the new verification URL scheme
 
 ## [0.9.0][] - 2020-02-26
 

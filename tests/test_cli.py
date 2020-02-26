@@ -159,5 +159,4 @@ def test_verify_source_path_must_exist(log_file):
 
     log_file.seek(0)
     log = log_file.read().decode('utf-8')
-    print("log" + log)
     assert 'Path "invalid.jsn" does not exist.' in log
