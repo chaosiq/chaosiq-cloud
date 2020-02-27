@@ -2,7 +2,19 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.3...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.4...HEAD
+
+## [0.9.4][] - 2020-02-27
+
+[0.9.4]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.3...0.9.4
+
+### Changed
+
+-  Set the execution state when the run has completed successfully [#59][59]
+
+[59]: https://github.com/chaosiq/chaosiq-cloud/issues/59
+
+[27]: https://github.com/chaosiq/chaosiq-cloud/issues/27
 
 ## [0.9.3][] - 2020-02-26
 

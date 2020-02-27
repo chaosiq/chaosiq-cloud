@@ -77,6 +77,7 @@ def test_run_verification(build_base_url: str, base_team_url: str,
         m.post(url, status_code=201, json={})
         journal = run_verification(experiment, default_settings)
         assert journal.get("deviated") is False
+        assert journal["status"] == "completed"
         assert len(journal.get("measurements")) > 1
 
 

@@ -176,9 +176,10 @@ def run_verification(experiment: Experiment,
                 stop_measurements_event.set()
                 measurements_thread.join()
             else:
+                if journal["status"] == "running":
+                    journal["status"] = "completed"
                 stop_measurements_event.set()
                 measurements_thread.join()
-                journal["status"] = journal["status"] or "completed"
                 logger.info("Triggering any verification rollbacks")
                 try:
                     journal["rollbacks"] = apply_rollbacks(
