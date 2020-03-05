@@ -22,6 +22,38 @@ def test_result_value_above_ko():
     assert result_value_above(value, 1.0) is False
 
 
+def test_result_range_vector_ok():
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "values": [
+                [1583406074.984, 0.78], [1583406074.984, 0.64]]}]
+        }
+    }
+    assert result_value_above(value, 0.5) is True
+
+
+def test_result_range_vector_ko():
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "values": [
+                [1583406074.984, 0.78], [1583406074.984, 2.38]]}]
+        }
+    }
+    assert result_value_above(value, 1.5) is False
+
+
+def test_result_scalar_ok():
+    value = {
+        "status": "success", "data": {
+            "resultType": "scalar",
+            "result": [1583406074.984, 0.78]
+        }
+    }
+    assert result_value_above(value, 0.5) is True
+
+
 def test_result_value_above_with_nan_ko():
     value = {
         "status": "success", "data": {
