@@ -3,24 +3,90 @@ from chaoscloud.tolerances.prometheus import result_value_above, \
 
 
 def test_result_value_above_ok():
-    assert result_value_above(1.78, 1) is True
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {},"value": [1583406074.984, 1.78]}]
+        }
+    }
+    assert result_value_above(value, 1) is True
 
 
 def test_result_value_above_ko():
-    assert result_value_above(0.78, 1.0) is False
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, 0.78]}]
+        }
+    }
+    assert result_value_above(value, 1.0) is False
+
+
+def test_result_value_above_with_nan_ko():
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, "NaN"]}]
+        }
+    }
+    assert result_value_above(value, 1) is False
 
 
 def test_result_value_under_ok():
-    assert result_value_under(0.12, 0.6) is True
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, 0.12]}]
+        }
+    }
+    assert result_value_under(value, 0.6) is True
 
 
 def test_result_value_under_ko():
-    assert result_value_under(0.89, 0.6) is False
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, 0.89]}]
+        }
+    }
+    assert result_value_under(value, 0.6) is False
+
+
+def test_result_value_with_nan_ko():
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, "NaN"]}]
+        }
+    }
+    assert result_value_under(value, 0.6) is False
 
 
 def test_result_value_between_ok():
-    assert result_value_between(0.12, 0.1, 0.6) is True
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result":[{"metric": {}, "value": [1583406074.984, 0.23]}]
+        }
+    }
+    assert result_value_between(value, 0.1, 0.6) is True
 
 
 def test_result_value_between_ko():
-    assert result_value_between(0.89, 0.3, 0.6) is False
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, 0.89]}]
+        }
+    }
+    assert result_value_between(value, 0.3, 0.6) is False
+
+
+def test_result_value_between_with_nan_ko():
+    value = {
+        "status": "success", "data": {
+            "resultType": "vector",
+            "result": [{"metric": {}, "value": [1583406074.984, "NaN"]}]
+        }
+    }
+    assert result_value_between(value, 0.3, 0.6) is False
