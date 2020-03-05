@@ -6,7 +6,7 @@ def test_result_value_above_ok():
     value = {
         "status": "success", "data": {
             "resultType": "vector",
-            "result": [{"metric": {},"value": [1583406074.984, 1.78]}]
+            "result": [{"metric": {}, "value": [1583406074.984, 1.78]}]
         }
     }
     assert result_value_above(value, 1) is True
@@ -66,7 +66,7 @@ def test_result_value_between_ok():
     value = {
         "status": "success", "data": {
             "resultType": "vector",
-            "result":[{"metric": {}, "value": [1583406074.984, 0.23]}]
+            "result": [{"metric": {}, "value": [1583406074.984, 0.23]}]
         }
     }
     assert result_value_between(value, 0.1, 0.6) is True
