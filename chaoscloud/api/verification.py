@@ -198,7 +198,7 @@ class VerificationRunEventHandler:
             "POST", "{}/{}/finished".format(
                 self.verification_run_path, self.run_id), json={
                 "journal": journal,
-                "status": "completed",
+                "status": journal.get("status", "unknown"),
                 "results": {
                     "successful_samples": successful_samples,
                     "deviated_samples": deviated_samples,

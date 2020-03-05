@@ -4,6 +4,10 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.4...HEAD
 
+### Changed
+
+-  Set journal status as verification status
+
 ## [0.9.4][] - 2020-02-27
 
 [0.9.4]: https://github.com/chaosiq/chaosiq-cloud/compare/0.9.3...0.9.4
