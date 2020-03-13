@@ -21,13 +21,12 @@ steps:
 ###############################################################################
 - name: gcr.io/cloud-builders/docker
   id: Build console backend image
-  dir: saas-backend/ci
   args:
   - build
   - '--tag=gcr.io/chaosiq-devops/chaostoolkit:$SHORT_SHA'
   - '--tag=gcr.io/chaosiq-devops/chaostoolkit:latest'
   - '--file=Dockerfile'
-  - ..
+  - .
 
 images:
   - 'gcr.io/chaosiq-devops/chaostoolkit:$SHORT_SHA'
@@ -36,4 +35,4 @@ images:
 secrets:
 - kmsKeyName: 'projects/chaosiq-devops/locations/global/keyRings/ci/cryptoKeys/cloudbuilds'
   secretEnv:
-    SLACK_WEBHOOK_URL: 'CiQA0IkRxa5yc8KQ8OlRAz+DeH6/WTqMuYuC1hlymMjszE6/Y+cSdQAlaeRbc3xpXyNg8Z76OnD05dVBGrmAgcAwBpJHnAofYmGn1j3sEwWE0L52PfSxJGc1W1Ymofjhr7Ienwrj3vZcr6y0UQbhmfTmas5vtv4M8guH0p5dj6ttQIDFOtG1tgFuc48BLHGBZ0S6R3sT+XsI2ggCGA=='
+    SLACK_WEBHOOK_URL: 'CiQA0IkRxexyiSaDl+epM9j5T/wYu0ct6sn7iUMgpdi9bMe90psSdwBrgwFn38criOFVJRk0rVpOzgJeaLj9EJrdsl9/h2Q4i9bFk/OpfTuQ05v6kBU7/hbgB4wC1OE2eNd9LW4K28kate6EzdJcEWMii/E3irARWdizaJKZdNpTZJO67WIgxeefUArwSl3+B/fKW/mWNECrJBj2SS89'
