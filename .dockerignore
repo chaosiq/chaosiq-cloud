@@ -1,0 +1,15 @@
+dist/
+tests/
+htmlcov/
+*.egg-info/
+*/*/__pychache__
+.eggs/
+.cache/
+.vscode/
+build/
+.travis.yml
+ci.bash
+*.md
+setup.*
+*.ini
+*.xml

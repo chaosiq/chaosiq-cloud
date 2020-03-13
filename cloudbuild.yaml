@@ -1,0 +1,39 @@
+tags:
+- console
+
+timeout: 3600s
+
+steps:
+###############################################################################
+# Notify the team about the build starting
+###############################################################################
+- name: 'gcr.io/chaosiq-devops/slackbot'
+  id: Notify the team about the build starting
+  entrypoint: /bin/sh
+  args:
+  - '-c'
+  - |
+    /go/bin/main --build=$BUILD_ID --webhook=$$SLACK_WEBHOOK_URL
+  secretEnv: ['SLACK_WEBHOOK_URL']
+
+###############################################################################
+# Build the final container image
+###############################################################################
+- name: gcr.io/cloud-builders/docker
+  id: Build console backend image
+  dir: saas-backend/ci
+  args:
+  - build
+  - '--tag=gcr.io/chaosiq-devops/chaostoolkit:$SHORT_SHA'
+  - '--tag=gcr.io/chaosiq-devops/chaostoolkit:latest'
+  - '--file=Dockerfile'
+  - ..
+
+images:
+  - 'gcr.io/chaosiq-devops/chaostoolkit:$SHORT_SHA'
+  - 'gcr.io/chaosiq-devops/chaostoolkit:latest'
+
+secrets:
+- kmsKeyName: 'projects/chaosiq-devops/locations/global/keyRings/ci/cryptoKeys/cloudbuilds'
+  secretEnv:
+    SLACK_WEBHOOK_URL: 'CiQA0IkRxa5yc8KQ8OlRAz+DeH6/WTqMuYuC1hlymMjszE6/Y+cSdQAlaeRbc3xpXyNg8Z76OnD05dVBGrmAgcAwBpJHnAofYmGn1j3sEwWE0L52PfSxJGc1W1Ymofjhr7Ienwrj3vZcr6y0UQbhmfTmas5vtv4M8guH0p5dj6ttQIDFOtG1tgFuc48BLHGBZ0S6R3sT+XsI2ggCGA=='
