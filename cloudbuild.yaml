@@ -23,14 +23,14 @@ steps:
   id: Build console backend image
   args:
   - build
-  - '--tag=gcr.io/chaosiq-devops/chaostoolkit:$SHORT_SHA'
-  - '--tag=gcr.io/chaosiq-devops/chaostoolkit:latest'
+  - '--tag=gcr.io/chaosiq-devops/chaostoolkit-chaosiq-cloud:$SHORT_SHA'
+  - '--tag=gcr.io/chaosiq-devops/chaostoolkit-chaosiq-cloud:latest'
   - '--file=Dockerfile'
   - .
 
 images:
-  - 'gcr.io/chaosiq-devops/chaostoolkit:$SHORT_SHA'
-  - 'gcr.io/chaosiq-devops/chaostoolkit:latest'
+  - 'gcr.io/chaosiq-devops/chaostoolkit-chaosiq-cloud:$SHORT_SHA'
+  - 'gcr.io/chaosiq-devops/chaostoolkit-chaosiq-cloud:latest'
 
 secrets:
 - kmsKeyName: 'projects/chaosiq-devops/locations/global/keyRings/ci/cryptoKeys/cloudbuilds'
