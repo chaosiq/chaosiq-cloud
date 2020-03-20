@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.com/chaosiq/chaosiq-cloud.svg?branch=master)](https://travis-ci.com/chaosiq/chaosiq-cloud)
 [![Python versions](https://img.shields.io/pypi/pyversions/chaosiq-cloud.svg)](https://www.python.org/)
 [![Has wheel](https://img.shields.io/pypi/wheel/chaosiq-cloud.svg)](http://pythonwheels.com/)
+[![Docker Pulls](https://img.shields.io/docker/pulls/chaosiq/chaostoolkit)](https://hub.docker.com/r/chaosiq/chaostoolkit)
 
 This is the ChaosIQ extension package for the [Chaos Toolkit][chaostoolkit].
 
