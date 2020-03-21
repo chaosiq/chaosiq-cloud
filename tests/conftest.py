@@ -6,7 +6,8 @@ import pytest
 
 from chaoscloud.api import urls
 
-ENDPOINT = "https://chaosiq.io"
+DOMAIN = "chaosiq.io"
+ENDPOINT = "https://{d}".format(d=DOMAIN)
 
 
 @pytest.fixture
@@ -45,6 +46,12 @@ def organizations(default_org: Dict[str, str]) -> List[Dict[str, str]]:
 
 
 @pytest.fixture
+def default_auth_token() -> str:
+    # this is a fake token ...
+    return str(uuid.uuid4().hex)
+
+
+@pytest.fixture
 def settings() -> Dict[str, Any]:
     return {
         "controls":
@@ -74,8 +81,15 @@ def base_team_url(default_org_id: str, default_team_id: str) -> str:
 
 @pytest.fixture
 def default_settings(default_org_id: str,
-                     default_team_id: str) -> Dict[str, Any]:
+                     default_team_id: str,
+                     default_auth_token: str) -> Dict[str, Any]:
     return {
+        "auths": {
+            DOMAIN: {
+                "type": "bearer",
+                "value": default_auth_token
+            }
+        },
         "controls": {
             "chaosiq-cloud": {
                 "features": {
@@ -84,6 +98,7 @@ def default_settings(default_org_id: str,
                     "workspace": 'on'
                 },
                 "provider": {
+                    "type": "dummy",
                     "arguments": {
                         "url": ENDPOINT,
                         "organizations": [

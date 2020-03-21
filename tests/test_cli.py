@@ -1,8 +1,9 @@
 from tempfile import NamedTemporaryFile
+from typing import Any, Dict
 from unittest.mock import patch
 
 import requests_mock
-from chaoslib.settings import load_settings
+from chaoslib.settings import load_settings, save_settings
 from chaostoolkit.cli import cli
 from click.testing import CliRunner
 
@@ -150,13 +151,19 @@ def test_org(org):
             }]
 
 
-def test_verify_source_path_must_exist(log_file):
-    runner = CliRunner()
-    result = runner.invoke(cli, [
-        '--log-file', log_file.name, 'verify', 'invalid.jsn'])
-    assert result.exit_code == 1
-    assert result.exception
+def test_verify_source_path_must_exist(
+        log_file, default_settings: Dict[str, Any]):
+    with NamedTemporaryFile(suffix="yaml") as settings_file:
+        save_settings(default_settings, settings_file.name)
 
-    log_file.seek(0)
-    log = log_file.read().decode('utf-8')
-    assert 'Path "invalid.jsn" does not exist.' in log
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            '--settings', settings_file.name,
+            '--log-file', log_file.name,
+            'verify', 'invalid.jsn'])
+        assert result.exit_code == 1
+        assert result.exception
+
+        log_file.seek(0)
+        log = log_file.read().decode('utf-8')
+        assert 'Path "invalid.jsn" does not exist.' in log
