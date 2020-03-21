@@ -3,7 +3,7 @@ set -eo pipefail
 
 function lint () {
     echo "Checking the code syntax"
-    pylama
+    pylama chaoscloud
 }
 
 function build () {
