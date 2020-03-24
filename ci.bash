@@ -18,11 +18,13 @@ function run-test () {
 
 function build-docker () {
     echo "Building the Docker image"
-    docker login -u ${DOCKER_USER_NAME} -p ${DOCKER_PWD}
     docker build -t chaosiq/chaostoolkit .
 
-    echo "Publishing to the Docker repository"
-    docker push chaosiq/chaostoolkit:latest
+    if [[ $TRAVIS_BRANCH == "master" ]]; then
+      echo "Publishing to the Docker repository"
+      docker push chaosiq/chaostoolkit:latest
+      docker login -u ${DOCKER_USER_NAME} -p ${DOCKER_PWD}
+    fi
 }
 
 function release () {
@@ -44,12 +46,7 @@ function main () {
     lint || return 1
     build || return 1
     run-test || return 1
-
-    if [[ $TRAVIS_PYTHON_VERSION =~ ^3\.5+$ ]]; then
-      if [[ $TRAVIS_BRANCH == "master" ]]; then
-        build-docker || return 1
-      fi
-    fi
+    build-docker || return 1
 
     if [[ $TRAVIS_PYTHON_VERSION =~ ^3\.5+$ ]]; then
         if [[ $TRAVIS_TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
