@@ -186,11 +186,14 @@ def disable(ctx: click.Context, feature: str):
               help='Run the verification without executing activities.')
 @click.option('--no-validation', is_flag=True,
               help='Do not validate the verification before running.')
+@click.option('--no-verify-tls', is_flag=True,
+              help='Do not verify TLS certificate.')
 @click.argument('source')
 @click.pass_context
 def verify(ctx: click.Context, source: str,
            journal_path: str = "./journal.json", dry: bool = False,
-           no_validation: bool = False, no_exit: bool = False):
+           no_validation: bool = False, no_exit: bool = False,
+           no_verify_tls: bool = False):
     """Run the verification loaded from SOURCE, either a local file or a
        HTTP resource. SOURCE can be formatted as JSON or YAML."""
 
@@ -202,7 +205,7 @@ def verify(ctx: click.Context, source: str,
             ctx.exit(1)
 
         verification = load_experiment(
-            click.format_filename(source), settings)
+            source, settings, verify_tls=not no_verify_tls)
     except InvalidSource as x:
         logger.error(str(x))
         logger.debug(x)
