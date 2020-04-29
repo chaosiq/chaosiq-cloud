@@ -159,8 +159,7 @@ def run_verification(experiment: Experiment,
                 run.start_cooldown(cool_down_duration)
                 pause_for_duration(cool_down_duration)
                 run.cooldown_completed()
-                logger.info("Finished verification cool-down period"
-                            .format(t=experiment["title"]))
+                logger.info("Finished verification cool-down period")
             except InterruptExecution as i:
                 run.interrupt()
                 journal["status"] = "interrupted"
