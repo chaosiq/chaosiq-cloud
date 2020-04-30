@@ -22,8 +22,8 @@ function build-docker () {
 
     if [[ $TRAVIS_BRANCH == "master" ]]; then
       echo "Publishing to the Docker repository"
-      docker push chaosiq/chaostoolkit:latest
       docker login -u ${DOCKER_USER_NAME} -p ${DOCKER_PWD}
+      docker push chaosiq/chaostoolkit:latest
     fi
 }
 
