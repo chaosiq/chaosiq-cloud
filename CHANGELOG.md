@@ -4,6 +4,11 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.1...HEAD
 
+### Changed
+
+-   Now terminates a verification on user interruption as soon as the signal
+    is received; does not wait for the next frequency.
+
 ## [0.10.1][] - 2020-04-30
 
 [0.10.1]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.0...0.10.1
