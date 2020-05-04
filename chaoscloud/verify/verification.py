@@ -248,7 +248,7 @@ def run_measurements_experiment(stop_measurements_event: threading.Event,
             deepcopy(experiment), config, secrets, dry=dry)
         run_event_handler.measurement_sample(measurements_count, state)
         journal["measurements"].append(state)
-        time.sleep(frequency)
+        stop_measurements_event.wait(timeout=frequency)
 
     run_event_handler.measurements_completed()
     logger.info("Stopping verification measurements. {} measurements taken"
