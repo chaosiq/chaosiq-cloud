@@ -41,11 +41,9 @@ function release () {
     pip install twine
     twine upload dist/* -u ${PYPI_USER_NAME} -p ${PYPI_PWD}
 
-    if [[ $TRAVIS_BRANCH == "master" ]]; then
-      docker tag chaosiq/chaostoolkit:latest chaosiq/chaostoolkit:$TRAVIS_TAG
-      echo "Publishing to the Docker repository"
-      docker push chaosiq/chaostoolkit:$TRAVIS_TAG
-    fi
+    #docker tag chaosiq/chaostoolkit:latest chaosiq/chaostoolkit:$TRAVIS_TAG
+    #echo "Publishing to the Docker repository"
+    #docker push chaosiq/chaostoolkit:$TRAVIS_TAG
 }
 
 function main () {
