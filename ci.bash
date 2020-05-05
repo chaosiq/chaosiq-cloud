@@ -25,6 +25,12 @@ function build-docker () {
       docker login -u ${DOCKER_USER_NAME} -p ${DOCKER_PWD}
       docker push chaosiq/chaostoolkit:latest
     fi
+
+    if [[ $TRAVIS_TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      echo "Publishing to the Docker repository"
+      docker login -u ${DOCKER_USER_NAME} -p ${DOCKER_PWD}
+      docker push chaosiq/chaostoolkit:latest
+    fi
 }
 
 function release () {
