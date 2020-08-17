@@ -2,7 +2,18 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.2...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.11.0...HEAD
+
+## [0.11.0][] - 2020-08-17
+
+[0.101.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.2...0.11.0
+
+### Changed
+
+-   Pinning chaostoolkit dependency as its internals will change in the next
+    release with [chaostoolkit-lib#172][chaostoolkit-lib#172] and likely break our plugin
+
+[chaostoolkit-lib#172]: https://github.com/chaostoolkit/chaostoolkit-lib/pull/172
 
 ## [0.10.2][] - 2020-05-05
 
