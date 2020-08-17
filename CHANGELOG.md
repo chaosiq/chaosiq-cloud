@@ -6,7 +6,7 @@
 
 ## [0.11.0][] - 2020-08-17
 
-[0.101.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.2...0.11.0
+[0.11.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.2...0.11.0
 
 ### Changed
 
