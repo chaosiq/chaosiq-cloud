@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, NoReturn, Optional, Tuple
+import time
+from typing import Any, Dict, Optional, Tuple
 
 from chaoslib.exceptions import InterruptExecution
 from chaoslib.types import Experiment, Journal, Settings
@@ -17,14 +17,7 @@ from .execution import initialize_execution
 from . import client_session
 from . import urls
 
-__all__ = ["verification_run", "VerificationRunEventHandler", "get_run_id"]
-
-
-@contextmanager
-def verification_run(experiment: Experiment, settings: Settings):
-    handler = VerificationRunEventHandler(experiment, settings)
-    yield handler
-    handler.bye()
+__all__ = ["VerificationRunEventHandler", "get_run_id"]
 
 
 ###############################################################################
@@ -44,7 +37,7 @@ def get_call_context(settings: Settings) -> Tuple[str, bool, Organizations]:
     return base_endpoint, verify_tls, orgs
 
 
-def set_run_id(verification_run_id: str, experiment: Experiment) -> NoReturn:
+def set_run_id(verification_run_id: str, experiment: Experiment) -> None:
     extensions = experiment.setdefault("extensions", [])
     for extension in extensions:
         if extension["name"] == "chaosiq":
@@ -60,7 +53,11 @@ def get_run_id(experiment: Experiment) -> str:
 
 
 class VerificationRunEventHandler:
-    def __init__(self, experiment: Experiment, settings: Settings):
+    def __init__(self, experiment: Experiment, settings: Settings) -> None:
+        """
+        verification run handler for the Chaos Toolkit mainloop. Its purpose
+        is to notify the ChaosIQ services of various steps in the process.
+        """
         self.verification_id = get_verification_id(experiment)
         self.experiment = experiment
         self.settings = settings
@@ -75,14 +72,11 @@ class VerificationRunEventHandler:
             raise MissingVerificationIdentifier()
 
     @property
-    def initialized(self):
+    def initialized(self) -> bool:
         return self.run_id is not None
 
-    def bye(self):
-        pass
-
     @property
-    def verification_run_path(self):
+    def verification_run_path(self) -> str:
         return urls.verification_run(
             urls.verification(
                 "", verification_id=self.verification_id
@@ -90,7 +84,7 @@ class VerificationRunEventHandler:
         )
 
     @property
-    def verification_run_event_path(self):
+    def verification_run_event_path(self) -> str:
         return urls.verification_run_events(
             urls.verification_run(
                 urls.verification(
@@ -99,6 +93,14 @@ class VerificationRunEventHandler:
                 verification_run_id=self.run_id
             )
         )
+
+    @property
+    def verification(self) -> Dict[str, Any]:
+        extensions = self.experiment.get("extensions")
+        chaosiq_blocks = list(filter(
+            lambda extension: extension.get("name", "") == "chaosiq",
+            extensions))
+        return chaosiq_blocks[0].get("verification")
 
     def get_error(self, r: requests.Response) -> Any:
         if (r is not None) and (r.status_code > 399):
@@ -128,12 +130,17 @@ class VerificationRunEventHandler:
                     )
                 )
 
-    def start(self, journal: Journal) -> str:
+    def started(self, experiment: Experiment, journal: Journal) -> None:
+        """
+        Notify the ChaosIQ service the verification has now started.
+
+        Provide it with the current journal and status.
+        """
         self._start_time = datetime.now()
         base_endpoint, verify_tls, orgs = get_call_context(self.settings)
         with client_session(
                 base_endpoint, orgs, verify_tls, self.settings) as session:
-            r = initialize_execution(session, self.experiment, journal)
+            r = initialize_execution(session, experiment, journal)
             if r.status_code not in [200, 201]:
                 raise InterruptExecution(
                     "It is possible you are trying to run a verification "
@@ -148,7 +155,7 @@ class VerificationRunEventHandler:
             "POST", self.verification_run_path, json={
                 "journal": journal,
                 "status": "started",
-                "experiment_id": get_experiment_id(self.experiment),
+                "experiment_id": get_experiment_id(experiment),
                 "execution_id": execution_id
             })
         error = self.get_error(r)
@@ -162,10 +169,12 @@ class VerificationRunEventHandler:
         self.run_id = payload["id"]
         if self.run_id:
             logger.debug("Verification run '{}' started".format(self.run_id))
-            set_run_id(self.run_id, self.experiment)
-        return self.run_id
+            set_run_id(self.run_id, experiment)
 
-    def finish(self, journal: Journal) -> NoReturn:
+    def finish(self, journal: Journal) -> None:
+        """
+        Notify the ChaosIQ service the verification has finished.
+        """
         if not self.initialized:
             return
 
@@ -184,7 +193,10 @@ class VerificationRunEventHandler:
         deviated_samples = 0
         total_number_of_samples = 0
         not_run_samples = 0
-        for m in journal.get("measurements", []):
+        measurements = journal.get("steady_states", {}).get("during", [])
+        # TODO: replace with steady_states.during server side
+        journal["measurements"] = measurements
+        for m in measurements:
             total_number_of_samples = total_number_of_samples + 1
             ssm = m.get("steady_state_met")
             if ssm is False:
@@ -214,7 +226,12 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run was finished: {}".format(
                     error))
 
-    def interrupt(self) -> NoReturn:
+    def interrupted(self, experiment: Experiment,
+                    journal: Journal) -> None:
+        """
+        Notify the ChaosIQ service the verification was interrupted by an
+        `InterruptedExecution`.
+        """
         if not self.initialized:
             return
 
@@ -228,7 +245,10 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run was interrupted: {}".format(
                     error))
 
-    def signal_exit(self) -> NoReturn:
+    def signal_exit(self) -> None:
+        """
+        Notify the ChaosIQ service the verification was exited by a signal.
+        """
         if not self.initialized:
             return
 
@@ -242,7 +262,10 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run was exited by "
                 "signal: {}".format(error))
 
-    def start_measurements(self, frequency: int) -> NoReturn:
+    def start_continous_hypothesis(self, frequency: int) -> None:
+        """
+        Notify the ChaosIQ service the continuous verification has started.
+        """
         if not self.initialized:
             return
 
@@ -259,7 +282,12 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run has started sampling the "
                 "system: {}".format(error))
 
-    def measurement_sample(self, iteration_index: int, state: Any) -> NoReturn:
+    def continous_hypothesis_iteration(self, iteration_index: int,
+                                       state: Any) -> None:
+        """
+        Notify the ChaosIQ service of a single continuous verification
+        iteration.
+        """
         if not self.initialized:
             return
 
@@ -277,7 +305,12 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run of new sample of the "
                 "system: {}".format(error))
 
-    def measurements_completed(self) -> NoReturn:
+    def continous_hypothesis_completed(self, experiment: Experiment,
+                                       journal: Journal,
+                                       exception: Exception = None) -> None:
+        """
+        Notify the ChaosIQ service the continuous verification has ended.
+        """
         if not self.initialized:
             return
 
@@ -291,16 +324,87 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run has completed sampling the "
                 "system: {}".format(error))
 
-    def start_condition(self, iteration_index: int = 0) -> NoReturn:
+    def start_hypothesis_before(self, experiment: Experiment) -> None:
         if not self.initialized:
             return
 
         r = self._make_call(
             "POST", self.verification_run_event_path, json={
+                "category": "verification-hypothesis-before-method-started"
+            })
+        error = self.get_error(r)
+        if error or (r is None):
+            logger.error(
+                "Failed to notify verification run hypothesis before "
+                "method started: {}".format(error))
+
+    def hypothesis_before_completed(self, experiment: Experiment,
+                                    state: Dict[str, Any],
+                                    journal: Journal) -> None:
+        if not self.initialized:
+            return
+
+        r = self._make_call(
+            "POST", self.verification_run_event_path, json={
+                "category": "verification-hypothesis-before-method-completed"
+            })
+        error = self.get_error(r)
+        if error or (r is None):
+            logger.error(
+                "Failed to notify verification run hypothesis before "
+                "method completed: {}".format(error))
+
+    def start_hypothesis_after(self, experiment: Experiment) -> None:
+        if not self.initialized:
+            return
+
+        r = self._make_call(
+            "POST", self.verification_run_event_path, json={
+                "category": "verification-hypothesis-after-method-started"
+            })
+        error = self.get_error(r)
+        if error or (r is None):
+            logger.error(
+                "Failed to notify verification run hypothesis after "
+                "method started: {}".format(error))
+
+    def hypothesis_after_completed(self, experiment: Experiment,
+                                   state: Dict[str, Any],
+                                   journal: Journal) -> None:
+        if not self.initialized:
+            return
+
+        r = self._make_call(
+            "POST", self.verification_run_event_path, json={
+                "category": "verification-hypothesis-after-method-completed"
+            })
+        error = self.get_error(r)
+        if error or (r is None):
+            logger.error(
+                "Failed to notify verification run hypothesis after "
+                "method completed: {}".format(error))
+
+    def start_method(self, experiment: Experiment) -> None:
+        """
+        Notify the ChaosIQ service the method has started
+        """
+        if not self.initialized:
+            return
+
+        warm_up_duration = self.verification.get("warm-up-duration")
+        logger.info(
+            "Starting verification warm-up period of {} "
+            "seconds".format(warm_up_duration))
+        if warm_up_duration:
+            time.sleep(warm_up_duration)
+        logger.info("Finished verification warm-up")
+
+        logger.info("Triggering verification conditions")
+
+        r = self._make_call(
+            "POST", self.verification_run_event_path, json={
                 "category": "verification-condition-started",
-                "payload": {
-                    "iteration": iteration_index
-                }
+                "payload": {}
             })
         error = self.get_error(r)
         if error or (r is None):
@@ -308,8 +412,10 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run condition has started "
                 ": {}".format(error))
 
-    def condition_completed(self, state: Any,
-                            iteration_index: int = 0) -> NoReturn:
+    def method_completed(self, experiment: Experiment, state: Any) -> None:
+        """
+        Notify the ChaosIQ service the method has ended
+        """
         if not self.initialized:
             return
 
@@ -317,7 +423,7 @@ class VerificationRunEventHandler:
             "POST", self.verification_run_event_path, json={
                 "category": "verification-condition-completed",
                 "payload": {
-                    "iteration": iteration_index
+                    "state": state
                 }
             })
         error = self.get_error(r)
@@ -326,7 +432,47 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run condition has completed "
                 ": {}".format(error))
 
-    def start_cooldown(self, duration: int) -> NoReturn:
+        duration_of_conditions = self.verification.get(
+            "duration-of-conditions")
+        logger.info("Starting verification conditions for {} seconds"
+                    .format(duration_of_conditions))
+        if duration_of_conditions:
+            time.sleep(duration_of_conditions)
+        logger.info("Finished verification conditions duration")
+
+    def start_rollbacks(self, experiment: Experiment) -> None:
+        if not self.initialized:
+            return
+
+        r = self._make_call(
+            "POST", self.verification_run_event_path, json={
+                "category": "verification-rollbacks-started"
+            })
+        error = self.get_error(r)
+        if error or (r is None):
+            logger.error(
+                "Failed to notify verification rollbacks "
+                "started: {}".format(error))
+
+    def rollbacks_completed(self, experiment: Experiment,
+                            journal: Journal) -> None:
+        if not self.initialized:
+            return
+
+        r = self._make_call(
+            "POST", self.verification_run_event_path, json={
+                "category": "verification-rollbacks-completed"
+            })
+        error = self.get_error(r)
+        if error or (r is None):
+            logger.error(
+                "Failed to notify verification run rollbacks "
+                "completed: {}".format(error))
+
+    def start_cooldown(self, duration: int) -> None:
+        """
+        Notify the ChaosIQ service the cooldown perios has started
+        """
         if not self.initialized:
             return
 
@@ -343,7 +489,18 @@ class VerificationRunEventHandler:
                 "Failed to notify verification run cooldown has started "
                 ": {}".format(error))
 
-    def cooldown_completed(self) -> NoReturn:
+        cool_down_duration = self.verification.get("cool-down-duration")
+        logger.info(
+            "Starting verification cool-down period of "
+            "{} seconds".format(cool_down_duration))
+        if cool_down_duration:
+            time.sleep(cool_down_duration)
+        logger.info("Finished verification cool-down period")
+
+    def cooldown_completed(self) -> None:
+        """
+        Notify the ChaosIQ service the cooldown perios has ended
+        """
         if not self.initialized:
             return
 

@@ -4,6 +4,13 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.11.0...HEAD
 
+### Changed
+
+-   Moved to implement the verification mainloop using the new ChaosToolkit
+    library's event interface. [#70][70]
+
+[70]: https://github.com/chaosiq/chaosiq-cloud/issues/70
+
 ## [0.11.0][] - 2020-08-17
 
 [0.11.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.10.2...0.11.0

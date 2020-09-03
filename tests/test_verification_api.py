@@ -6,8 +6,7 @@ import uuid
 import requests_mock
 
 from chaoscloud.api import urls
-from chaoscloud.api.verification import verification_run, \
-    VerificationRunEventHandler
+from chaoscloud.api.verification import VerificationRunEventHandler
 
 ENDPOINT = "https://chaosiq.io"
 
@@ -66,7 +65,7 @@ def test_start_run(build_base_url, base_team_url: str, default_org_id: str,
             "journal": journal
         })
         run = VerificationRunEventHandler(experiment, default_settings)
-        run_id = run.start(journal)
+        run_id = run.started(experiment, journal)
         assert m.called
         assert run_id == run_id
 
@@ -112,7 +111,7 @@ def test_failing_run_start_returns_nothing(build_base_url, base_team_url: str,
                 base_team_url, verification_id=verification_id))
         m.post(url, exc=RuntimeError)
         run = VerificationRunEventHandler(experiment, default_settings)
-        r = run.start({})
+        r = run.started(experiment, {})
         assert r is None
         assert m.called
 
@@ -171,7 +170,7 @@ def test_handle_start_event(build_base_url, base_team_url: str,
             "journal": journal
         })
 
-        with verification_run(experiment, default_settings) as run:
-            r = run.start(journal)
-            assert m.called
-            assert r == run_id
+        run = VerificationRunEventHandler(experiment, default_settings)
+        r = run.started(experiment, journal)
+        assert m.called
+        assert run.run_id == run_id
