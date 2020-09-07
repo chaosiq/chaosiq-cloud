@@ -11,7 +11,7 @@ from chaoslib.control import load_global_controls
 from chaoslib.exceptions import ChaosException, InvalidSource
 from chaoslib.loader import load_experiment, parse_experiment_from_file
 from chaoslib.settings import load_settings, save_settings
-from chaoslib.types import Experiment, Settings
+from chaoslib.types import Experiment, Settings, Strategy
 from chaostoolkit.cli import cli, encoder
 from logzero import logger
 from urllib3.exceptions import InsecureRequestWarning
@@ -221,7 +221,8 @@ def verify(ctx: click.Context, source: str,
 
     verification["dry"] = dry
 
-    journal = run_verification(verification, settings=settings)
+    journal = run_verification(
+        verification, settings=settings, strategy=Strategy.CONTINOUS)
 
     with io.open(journal_path, "w") as r:
         json.dump(

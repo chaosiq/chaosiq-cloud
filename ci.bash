@@ -13,7 +13,8 @@ function build () {
 
 function run-test () {
     echo "Running the tests"
-    python3 setup.py test
+    pip install -e .
+    pytest
 }
 
 function build-docker () {
