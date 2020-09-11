@@ -17,7 +17,6 @@ from .api.safeguard import (is_allowed_to_continue,
 from .api.verification import get_run_id
 from .extension import remove_sensitive_extension_values, set_extension_value
 from .settings import is_feature_enabled
-from .sig import register_cleanup_on_forced_exit
 from .types import Organizations
 from .workspace import (get_experiment_metadata_from_workspace,
                         initialize_workspace_path, load_workspace,
@@ -34,8 +33,6 @@ def configure_control(experiment: Experiment, settings: Settings,
     and the journal.
     Updates the ChaosIQ workspace for local files experiments.
     """
-    register_cleanup_on_forced_exit()
-
     if not is_feature_enabled(settings, "publish"):
         logger.warning(
             "\nChaosIQ extension has disabled publishing\n"

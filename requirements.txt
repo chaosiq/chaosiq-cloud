@@ -1,4 +1,4 @@
-chaostoolkit-lib~=1.13
+chaostoolkit-lib~=1.15
 #-e git://github.com/chaostoolkit/chaostoolkit-lib.git@refactor-run-experiment#egg=chaostoolkit-lib
 chaostoolkit~=1.7
 click~=7.0
