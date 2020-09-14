@@ -307,7 +307,6 @@ def test_publish_event(organizations, default_org_id, default_team_id):
                 s, "start-experiment", activity, None, None, extensions, None,
                 run)
             r = json.loads(m.last_request.body)
-            print(r)
             assert r["specversion"] == "1.0"
             assert r["datacontenttype"] == "application/json"
             assert r["type"] == "start-experiment"

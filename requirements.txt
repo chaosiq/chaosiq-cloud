@@ -7,4 +7,5 @@ requests~=2.21
 simplejson~=3.16
 pyyaml~=5.0
 tzlocal~=1.5
-cloudevents~=1.2
+cloudevents==0.3; python_version < '3.6'
+cloudevents~=1.2; python_version >= '3.6'

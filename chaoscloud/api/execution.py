@@ -1,14 +1,20 @@
 # -*- coding: utf-8 -*-
+import sys
 import uuid
 from datetime import datetime
-from typing import Any, List, NoReturn, Optional
+from typing import Any, Dict, List, NoReturn, Optional
 
 import pytz
 import simplejson as json
 from chaoslib.types import (Configuration, Experiment, Extension, Journal,
                             Secrets, Settings)
 from chaostoolkit import encoder as json_encoder
-from cloudevents.http import CloudEvent, to_structured
+if sys.version_info < (3, 6):
+    from cloudevents.sdk import converters, marshaller
+    from cloudevents.sdk.converters import structured
+    from cloudevents.sdk.event import v03
+else:
+    from cloudevents.http import CloudEvent, to_structured
 from logzero import logger
 from requests import Response, Session
 from tzlocal import get_localzone
@@ -142,12 +148,6 @@ def publish_event(session: Session, event_type: str, payload: Any,
             "identifier was not found in the experiment's extensions block.")
         return
 
-    try:
-        tz = get_localzone()
-    except pytz.exceptions.UnknownTimeZoneError:
-        logger.debug("Failed to locate timezone. Defaulting to UTC.")
-        tz = pytz.utc
-
     data = {
         "context": payload,
         "state": state
@@ -168,16 +168,7 @@ def publish_event(session: Session, event_type: str, payload: Any,
             }
         }, ensure_ascii=False, default=json_encoder)
 
-    attributes = {
-        "id": str(uuid.uuid4()),
-        "time": tz.localize(datetime.now()).isoformat(),
-        "type": event_type,
-        "source": "chaosiq-cloud",
-        "datacontenttype": "application/json"
-    }
-    event = CloudEvent(attributes, data)
-    headers, body = to_structured(event)
-
+    headers, body = make_cloud_event(event_type, data)
     url = urls.event(urls.execution(
         urls.experiment(session.base_url, experiment_id=experiment_id),
         execution_id=execution_id))
@@ -199,3 +190,44 @@ def save_ids_to_journal(extensions: List[Extension],
     extension = get_chaosiq_extension_from_journal(journal)
     extension["execution_id"] = execution_id
     extension["experiment_id"] = experiment_id
+
+
+def get_tz() -> Any:
+    try:
+        return get_localzone()
+    except pytz.exceptions.UnknownTimeZoneError:
+        logger.debug("Failed to locate timezone. Defaulting to UTC.")
+        return pytz.utc
+
+
+if sys.version_info < (3, 6):
+    def make_cloud_event(event_type: str, data: Dict[str, Any]) -> Any:
+        tz = get_tz()
+        event = (
+            v03.Event().
+            SetContentType("application/json").
+            SetData(data).
+            SetEventID(str(uuid.uuid4())).
+            SetSource("chaosiq-cloud").
+            SetEventTime(tz.localize(datetime.now()).isoformat()).
+            SetEventType(event_type)
+        )
+        m = marshaller.NewHTTPMarshaller(
+            [
+                structured.NewJSONHTTPCloudEventConverter()
+            ]
+        )
+        h, b = m.ToRequest(event, converters.TypeStructured, lambda x: x)
+        return h, b.getvalue()
+else:
+    def make_cloud_event(event_type: str, data: Dict[str, Any]) -> Any:
+        tz = get_tz()
+        attributes = {
+            "id": str(uuid.uuid4()),
+            "time": tz.localize(datetime.now()).isoformat(),
+            "type": event_type,
+            "source": "chaosiq-cloud",
+            "datacontenttype": "application/json"
+        }
+        event = CloudEvent(attributes, data)
+        return to_structured(event)
