@@ -54,6 +54,10 @@ packages = [
     'chaoscloud.tolerances'
 ]
 
+install_require = []
+with io.open('requirements.txt') as f:
+    install_require = [l.strip() for l in f if not l.startswith(('#', '-e'))]
+
 setup_params = dict(
     name=name,
     version=get_version_from_package(),
@@ -68,6 +72,7 @@ setup_params = dict(
     packages=packages,
     include_package_data=True,
     python_requires='>=3.5.*',
+    install_requires=install_require,
     entry_points={
         'chaostoolkit.cli_plugins': [
             'signin = chaoscloud.cli:signin',
