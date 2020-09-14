@@ -307,14 +307,14 @@ def test_publish_event(organizations, default_org_id, default_team_id):
                 s, "start-experiment", activity, None, None, extensions, None,
                 run)
             r = json.loads(m.last_request.body)
-            assert r["specversion"] == "0.2"
-            assert r["contenttype"] == "application/json"
+            print(r)
+            assert r["specversion"] == "1.0"
+            assert r["datacontenttype"] == "application/json"
             assert r["type"] == "start-experiment"
             assert r["source"] == "chaosiq-cloud"
             assert "id" in r
             assert "time" in r
             assert "data" in r
-            assert "extensions" in r
 
 
 def test_cannot_publish_event_non_published_execution(organizations,

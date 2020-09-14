@@ -8,9 +8,7 @@ import simplejson as json
 from chaoslib.types import (Configuration, Experiment, Extension, Journal,
                             Secrets, Settings)
 from chaostoolkit import encoder as json_encoder
-from cloudevents.sdk import converters, marshaller
-from cloudevents.sdk.converters import structured
-from cloudevents.sdk.event import v02
+from cloudevents.http import CloudEvent, to_structured
 from logzero import logger
 from requests import Response, Session
 from tzlocal import get_localzone
@@ -170,26 +168,20 @@ def publish_event(session: Session, event_type: str, payload: Any,
             }
         }, ensure_ascii=False, default=json_encoder)
 
-    event = (
-        v02.Event().
-        SetContentType("application/json").
-        SetData(data).
-        SetEventID(str(uuid.uuid4())).
-        SetSource("chaosiq-cloud").
-        SetEventTime(tz.localize(datetime.now()).isoformat()).
-        SetEventType(event_type)
-    )
-    m = marshaller.NewHTTPMarshaller(
-        [
-            structured.NewJSONHTTPCloudEventConverter()
-        ]
-    )
+    attributes = {
+        "id": str(uuid.uuid4()),
+        "time": tz.localize(datetime.now()).isoformat(),
+        "type": event_type,
+        "source": "chaosiq-cloud",
+        "datacontenttype": "application/json"
+    }
+    event = CloudEvent(attributes, data)
+    headers, body = to_structured(event)
 
     url = urls.event(urls.execution(
         urls.experiment(session.base_url, experiment_id=experiment_id),
         execution_id=execution_id))
-    headers, body = m.ToRequest(event, converters.TypeStructured, lambda x: x)
-    r = session.post(url, headers=headers, data=body.getvalue())
+    r = session.post(url, headers=headers, data=body)
     if r.status_code != 201:
         logger.debug("Failed to push event to {}: {}".format(url, r.text))
 

@@ -4,6 +4,13 @@
 
 [Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.13.0...HEAD
 
+### Changed
+
+- Bumped to cloudevents sdk 1.2 which meant updating the cloudevent sent to
+  ChaosIQ to match the newer specification [#74][74]
+
+[74]: https://github.com/chaosiq/chaosiq-cloud/issues/74
+
 ## [0.13.0][] - 2020-09-11
 
 [0.13.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.12.0...0.13.0
