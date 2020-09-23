@@ -12,12 +12,6 @@ except ImportError:
 from chaoslib.types import (Configuration, Experiment, Extension, Journal,
                             Secrets, Settings)
 from chaostoolkit import encoder as json_encoder
-if sys.version_info < (3, 6):
-    from cloudevents.sdk import converters, marshaller
-    from cloudevents.sdk.converters import structured
-    from cloudevents.sdk.event import v03
-else:
-    from cloudevents.http import CloudEvent, to_structured
 from logzero import logger
 from requests import Response, Session
 from tzlocal import get_localzone
@@ -25,6 +19,14 @@ from tzlocal import get_localzone
 from ..extension import remove_sensitive_extension_values
 from . import (get_chaosiq_extension_from_journal, get_execution_id,
                get_experiment_id, set_execution_id, urls)
+
+if sys.version_info < (3, 6):
+    from cloudevents.sdk import converters, marshaller
+    from cloudevents.sdk.converters import structured
+    from cloudevents.sdk.event import v03
+else:
+    from cloudevents.http import CloudEvent, to_structured
+
 
 __all__ = ["publish_event", "initialize_execution", "publish_execution",
            "fetch_execution"]
