@@ -6,7 +6,10 @@ from urllib.parse import urlparse
 
 import click
 import requests
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 from chaoslib.control import load_global_controls
 from chaoslib.exceptions import ChaosException, InvalidSource
 from chaoslib.loader import load_experiment, parse_experiment_from_file

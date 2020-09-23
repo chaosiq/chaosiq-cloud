@@ -4,7 +4,6 @@ chaostoolkit~=1.7
 click~=7.0
 logzero~=1.5
 requests~=2.21
-simplejson~=3.16
 pyyaml~=5.0
 tzlocal~=1.5
 cloudevents==0.3; python_version < '3.6'
