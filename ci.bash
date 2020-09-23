@@ -57,6 +57,8 @@ function main () {
         if [[ $TRAVIS_TAG =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Releasing tag $TRAVIS_TAG with Python $TRAVIS_PYTHON_VERSION"
             release || return 1
+            # rebuild docker image with latest release package from pypi
+            build-docker || return 1
         fi
     fi
 }
