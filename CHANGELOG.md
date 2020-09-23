@@ -2,7 +2,15 @@
 
 ## [Unreleased][]
 
-[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.14.0...HEAD
+[Unreleased]: https://github.com/chaosiq/chaosiq-cloud/compare/0.15.0...HEAD
+
+## [0.15.0][] - 2020-09-23
+
+[0.15.0]: https://github.com/chaosiq/chaosiq-cloud/compare/0.14.0...0.15.0
+
+### Changed
+
+- Added missing package pytz to requirements
 
 ## [0.14.0][] - 2020-09-15
 
