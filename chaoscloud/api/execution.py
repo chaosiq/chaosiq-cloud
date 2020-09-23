@@ -5,10 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, List, NoReturn, Optional
 
 import pytz
-try:
-    import simplejson as json
-except ImportError:
-    import json
+import simplejson as json
 from chaoslib.types import (Configuration, Experiment, Extension, Journal,
                             Secrets, Settings)
 from chaostoolkit import encoder as json_encoder

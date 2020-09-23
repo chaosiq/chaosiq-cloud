@@ -2,10 +2,7 @@ import uuid
 
 import requests
 import requests_mock
-try:
-    import simplejson as json
-except:
-    import json
+import simplejson as json
 
 from chaoscloud.api import client_session
 from chaoscloud.api import urls
