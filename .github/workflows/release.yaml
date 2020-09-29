@@ -16,11 +16,25 @@ on:
 #      - '[0-9]+.[0-9]+.[0-9]+'
 #      - '[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
 
+
+#        # Strip git ref prefix from version
+#        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+#
+#        # Strip "v" prefix from tag name
+#        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+#
+#        # Use Docker `latest` tag convention
+#        [ "$VERSION" == "master" ] && VERSION=latest
+
+
 jobs:
   log:
     runs-on: ubuntu-16.04
     steps:
-    - run: echo "Releasing ChaosIQ-Cloud extension version ${GITHUB_REF:10}"
+    - name: log
+      run: |
+        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+        echo "Releasing ChaosIQ-Cloud extension version $VERSION (${{ github.ref }})"
 
 #  release-to-pypi:
 #    runs-on: ubuntu-16.04
