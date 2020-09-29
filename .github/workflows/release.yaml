@@ -16,17 +16,6 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
 
-
-#        # Strip git ref prefix from version
-#        VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-#
-#        # Strip "v" prefix from tag name
-#        [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-#
-#        # Use Docker `latest` tag convention
-#        [ "$VERSION" == "master" ] && VERSION=latest
-
-
 jobs:
   log:
     runs-on: ubuntu-16.04
@@ -36,25 +25,43 @@ jobs:
         VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
         echo "Releasing ChaosIQ-Cloud extension version $VERSION (${{ github.ref }})"
 
-#  release-to-pypi:
-#    runs-on: ubuntu-16.04
-#    steps:
-#    - uses: actions/checkout@v2
-#    - name: Set up Python
-#      uses: actions/setup-python@v1
-#      with:
-#        python-version: '3.5'
-#    - name: Install dependencies
-#      run: |
-#        python -m pip install --upgrade pip
-#        pip install setuptools wheel twine
-#    - name: Build and publish
-#      env:
-#        TWINE_USERNAME: chaostoolkit
-#        TWINE_PASSWORD: ${{ secrets.PYPI_PWD }}
-#      run: |
-#        python3 setup.py release
-#        twine upload dist/*
+  release-to-pypi:
+    runs-on: ubuntu-16.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.5'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: chaostoolkit
+        TWINE_PASSWORD: ${{ secrets.PYPI_PWD }}
+      run: |
+        python3 setup.py release
+        twine upload dist/*
+
+  build-docker-image:
+    runs-on: ubuntu-16.04
+    needs:
+      - release-to-pypi
+    steps:
+    - uses: actions/checkout@v2
+    - run: echo "Release new docker image"
+    - name: Building the Docker image
+      run: |
+        docker build -t chaosiq/chaostoolkit .
+    - name: Publishing to the Docker repository
+      env:
+        DOCKER_USER_NAME: chaosiq
+        DOCKER_PWD: ${{ secrets.DOCKER_PWD }}
+      run: |
+        docker login -u ${DOCKER_USER_NAME} -p ${DOCKER_PWD}
+        docker push chaosiq/chaostoolkit:latest
 
 #  build-docker-image:
 #    runs-on: ubuntu-16.04
